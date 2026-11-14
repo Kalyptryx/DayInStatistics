@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192">
+  <defs>
+    <linearGradient id="background" x1="20" y1="12" x2="174" y2="184" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#172b42"/>
+      <stop offset="1" stop-color="#07111d"/>
+    </linearGradient>
+    <linearGradient id="flame" x1="96" y1="25" x2="96" y2="130" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#fff19a"/>
+      <stop offset=".48" stop-color="#ffad4f"/>
+      <stop offset="1" stop-color="#f26355"/>
+    </linearGradient>
+    <linearGradient id="shell" x1="52" y1="76" x2="143" y2="154" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#c5fff0"/>
+      <stop offset=".52" stop-color="#68d9c7"/>
+      <stop offset="1" stop-color="#5296c5"/>
+    </linearGradient>
+    <linearGradient id="visor" x1="60" y1="92" x2="132" y2="132" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#152a46"/>
+      <stop offset="1" stop-color="#091725"/>
+    </linearGradient>
+    <filter id="glow" x="30" y="12" width="132" height="160" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse">
+      <feGaussianBlur stdDeviation="9"/>
+    </filter>
+  </defs>
+  <rect width="192" height="192" rx="48" fill="url(#background)"/>
+  <circle cx="96" cy="96" r="77" fill="#ffffff" fill-opacity=".035" stroke="#a9e8ff" stroke-opacity=".16" stroke-width="2"/>
+  <circle cx="96" cy="84" r="44" fill="#ffad4f" fill-opacity=".25" filter="url(#glow)"/>
+  <path d="M96 23c5 21 25 29 24 48-1 13-9 21-24 23-15-2-24-11-24-25 0-13 9-21 17-31 1 11 2 15 7 19 5-11 5-21 0-34Zm0 42c8 9 12 16 11 23-1 9-6 14-11 14-7 0-12-5-12-13 0-8 5-15 12-24Z" fill="url(#flame)"/>
+  <path d="M46 104V94c0-25 20-43 50-43s50 18 50 43v22c0 25-20 41-50 41s-50-16-50-41v-12Z" fill="url(#shell)" stroke="#e2fff7" stroke-width="4"/>
+  <path d="M39 91h10v28H39a8 8 0 0 1-8-8V99a8 8 0 0 1 8-8Zm104 0h10a8 8 0 0 1 8 8v12a8 8 0 0 1-8 8h-10V91Z" fill="#70bdbd"/>
+  <rect x="55" y="77" width="82" height="57" rx="21" fill="url(#visor)" stroke="#e9fff9" stroke-width="4"/>
+  <ellipse cx="79" cy="101" rx="7" ry="10" fill="#71f6e2"/>
+  <ellipse cx="113" cy="101" rx="7" ry="10" fill="#7dc7ff"/>
+  <path d="M83 119c8 6 18 6 26 0" fill="none" stroke="#affff1" stroke-linecap="round" stroke-width="4"/>
+  <path d="m151 47 4 9 9 4-9 4-4 9-4-9-9-4 9-4Z" fill="#fff19a"/>
+  <path d="m43 52 3 6 6 3-6 3-3 6-3-6-6-3 6-3Z" fill="#7feada"/>
+  <circle cx="149" cy="139" r="4" fill="#91d9ff"/>
+</svg>

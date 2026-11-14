@@ -1,0 +1,376 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0b1110">
+  <meta name="description" content="Ein neutraler, persönlicher Tagesrückblick mit langfristiger Auswertung.">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="DayInStatistics">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>DayInStatistics – persönlicher Tagesrückblick</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app-splash" id="app-splash" role="status" aria-label="DayInStatistics startet">
+    <div class="app-splash-content"><img src="icon.svg" alt=""><span class="splash-orbit splash-orbit-one"></span><span class="splash-orbit splash-orbit-two"></span><p class="eyebrow">EIN MOMENT FÜR DICH</p><h1>DayInStatistics</h1><p>Nori ist schon unterwegs …</p></div>
+  </div>
+  <header class="topbar">
+    <a class="brand" href="#overview" aria-label="DayInStatistics, Übersicht">
+      <span class="brand-mark" id="brand-mascot" aria-hidden="true"></span>
+      <span><strong>DayInStatistics</strong><small>Dein persönlicher Rückblick</small></span>
+    </a>
+    <div class="header-actions">
+      <button class="header-streak" id="header-streak" type="button" data-today-refreshed="false" aria-label="Flammen-Streak öffnen"><span aria-hidden="true">🔥</span><strong id="header-streak-count">0</strong></button>
+      <button class="icon-button" id="header-reminder" type="button" aria-label="Erinnerungseinstellungen öffnen" title="Erinnerungseinstellungen">◷</button>
+    </div>
+  </header>
+
+  <main>
+    <section class="view onboarding-view" id="view-onboarding" aria-labelledby="onboarding-title">
+      <div class="setup-progress" aria-label="Einrichtungsschritt">
+        <span class="setup-progress-copy" id="setup-progress-copy">Schritt 1 von 3</span>
+        <div class="setup-progress-track"><span id="setup-progress-fill"></span></div>
+      </div>
+      <div class="setup-mascot card">
+        <div class="setup-mascot-art mascot-art" data-mascot></div>
+        <div><p class="eyebrow">DEIN KLEINER BEGLEITER</p><h2 id="mascot-greeting">Hallo! Ich bin Nori 👋</h2><p id="mascot-message">Ich begleite dich durch die Einrichtung. Teile nur, womit du dich wohlfühlst – du kannst alles später ändern.</p></div>
+      </div>
+      <form id="onboarding-form">
+        <section class="setup-step active" data-setup-step="1">
+          <div class="page-heading"><div><p class="eyebrow">SCHÖN, DASS DU DA BIST</p><h1 id="onboarding-title">Richte deinen Kompass ein</h1></div></div>
+          <p class="setup-intro">Ein paar freiwillige Angaben helfen, Fragen, Rückblicke und Einblicke besser auf dich abzustimmen.</p>
+          <div class="card setup-card">
+            <label class="setup-label" for="profile-name">Wie darf ich dich nennen? <span>Optional</span></label>
+            <input id="profile-name" class="setup-input" name="name" type="text" maxlength="32" autocomplete="nickname" placeholder="Dein Name oder Spitzname">
+            <label class="setup-label" for="profile-age">Welche Altersgruppe passt zu dir? <span>Optional</span></label>
+            <select id="profile-age" class="setup-input" name="ageRange">
+              <option value="">Möchte ich nicht angeben</option><option value="6-10">6–10</option><option value="11-17">11–17</option><option value="under-18">Unter 18 (nicht genauer angeben)</option><option value="18-24">18–24</option><option value="25-34">25–34</option><option value="35-44">35–44</option><option value="45-54">45–54</option><option value="55-64">55–64</option><option value="65-plus">65 oder älter</option>
+            </select>
+            <label class="setup-label" for="profile-relationship-status">Beziehungsstatus <span>Optional</span></label>
+            <select id="profile-relationship-status" class="setup-input" name="relationshipStatus">
+              <option value="">Möchte ich nicht angeben</option><option value="single">Single</option><option value="dating">Dating</option><option value="partnered">In einer Partnerschaft</option><option value="married">Verheiratet</option><option value="complicated">Es ist kompliziert</option><option value="separated">Getrennt</option><option value="prefer_not">Möchte ich nicht angeben</option>
+            </select>
+            <p class="setup-hint">Du musst weder dein genaues Geburtsdatum noch sensible persönliche Informationen eingeben.</p>
+            <p class="setup-hint">Dein Beziehungsstatus ist freiwillig und bleibt auf diesem Gerät. Er steuert nur passende Fragen und Auswertungen.</p>
+          </div>
+          <button class="button button-primary setup-next" type="button" data-setup-next>Weiter <span>→</span></button>
+        </section>
+        <section class="setup-step" data-setup-step="2">
+          <div class="page-heading"><div><p class="eyebrow">DEIN ALLTAG</p><h1>Was prägt deine Tage? 🧭</h1></div></div>
+          <div class="card setup-card">
+            <label class="setup-label" for="profile-situation">Was beschreibt deine aktuelle Situation am ehesten? <span>Optional</span></label>
+            <select id="profile-situation" class="setup-input" name="situation">
+              <option value="">Möchte ich nicht angeben</option><option value="school">🏫 Schule</option><option value="university">🎓 Studium / Universität</option><option value="training">🧰 Ausbildung</option><option value="work">💼 Beruf / Arbeit</option><option value="care">🤝 Sorge- oder Care-Arbeit</option><option value="transition">🌱 Übergangsphase</option><option value="other">✨ Etwas anderes</option>
+            </select>
+            <label class="setup-label" for="profile-context">Möchtest du etwas zu Schule, Uni, Arbeit oder deinem Alltag ergänzen? <span>Optional</span></label>
+            <input id="profile-context" class="setup-input" name="context" type="text" maxlength="100" placeholder="Zum Beispiel: Abschlussjahr, neues Team …">
+            <p class="setup-hint">Bitte keine Namen, Adressen oder vertraulichen Angaben eintragen.</p>
+          </div>
+          <fieldset class="card setup-card">
+            <legend class="setup-label">Was interessiert dich oder gibt dir Energie? <span>Mehrfachauswahl</span></legend>
+            <div class="setup-options" id="interest-options">
+              <label class="setup-chip"><input type="checkbox" name="interests" value="movement"><span>🏃 Bewegung</span></label>
+              <label class="setup-chip"><input type="checkbox" name="interests" value="nature"><span>🌿 Natur</span></label>
+              <label class="setup-chip"><input type="checkbox" name="interests" value="animals"><span>🐾 Tiere</span></label>
+              <label class="setup-chip"><input type="checkbox" name="interests" value="creativity"><span>🎨 Kreativität</span></label>
+              <label class="setup-chip"><input type="checkbox" name="interests" value="music"><span>🎵 Musik</span></label>
+              <label class="setup-chip"><input type="checkbox" name="interests" value="reading"><span>📖 Lesen & Schreiben</span></label>
+              <label class="setup-chip"><input type="checkbox" name="interests" value="gaming"><span>🎮 Gaming & Spiele</span></label>
+              <label class="setup-chip"><input type="checkbox" name="interests" value="friends"><span>🫶 Freundschaften</span></label>
+              <label class="setup-chip"><input type="checkbox" name="interests" value="family"><span>🏡 Familie</span></label>
+              <label class="setup-chip"><input type="checkbox" name="interests" value="learning"><span>📚 Lernen</span></label>
+              <label class="setup-chip"><input type="checkbox" name="interests" value="work"><span>💡 Projekte</span></label>
+              <label class="setup-chip"><input type="checkbox" name="interests" value="mindfulness"><span>🧘 Ruhe & Achtsamkeit</span></label>
+              <label class="setup-chip"><input type="checkbox" name="interests" value="hobbies"><span>🧩 Hobbys</span></label>
+              <label class="setup-chip"><input type="checkbox" name="interests" value="cooking"><span>🍳 Kochen</span></label>
+              <label class="setup-chip"><input type="checkbox" name="interests" value="handcraft"><span>🛠️ Handwerk</span></label>
+              <label class="setup-chip"><input type="checkbox" name="interests" value="other"><span>✨ Anderes</span></label>
+            </div>
+          </fieldset>
+          <div class="setup-actions"><button class="button button-secondary" type="button" data-setup-back>← Zurück</button><button class="button button-primary" type="button" data-setup-next>Weiter →</button></div>
+        </section>
+        <section class="setup-step" data-setup-step="3">
+          <div class="page-heading"><div><p class="eyebrow">DEIN FOKUS</p><h1>Was möchtest du entdecken? ✨</h1></div></div>
+          <fieldset class="card setup-card">
+            <legend class="setup-label">Welche Themen möchtest du besonders im Blick behalten? <span>Mehrfachauswahl</span></legend>
+            <div class="setup-options">
+              <label class="setup-chip"><input type="checkbox" name="focus" value="stress"><span>🌊 Stress & Balance</span></label>
+              <label class="setup-chip"><input type="checkbox" name="focus" value="sleep"><span>🌙 Schlaf & Erholung</span></label>
+              <label class="setup-chip"><input type="checkbox" name="focus" value="energy"><span>⚡ Energie</span></label>
+              <label class="setup-chip"><input type="checkbox" name="focus" value="motivation"><span>🚀 Motivation</span></label>
+              <label class="setup-chip"><input type="checkbox" name="focus" value="social"><span>🫶 Verbundenheit</span></label>
+              <label class="setup-chip"><input type="checkbox" name="focus" value="growth"><span>🌱 Entwicklung</span></label>
+              <label class="setup-chip"><input type="checkbox" name="focus" value="confidence"><span>☀️ Zuversicht</span></label>
+              <label class="setup-chip"><input type="checkbox" name="focus" value="physical"><span>💚 Körpergefühl</span></label>
+              <label class="setup-chip"><input type="checkbox" name="focus" value="relationship"><span>💞 Beziehung</span></label>
+            </div>
+          </fieldset>
+          <div class="card setup-card">
+            <label class="setup-label" for="profile-intention">Was wäre ein hilfreicher kleiner Fokus für dich? <span>Optional</span></label>
+            <select id="profile-intention" class="setup-input" name="intention">
+              <option value="">Ich lasse mich erst einmal überraschen</option><option value="notice">🌤️ Muster im Alltag bemerken</option><option value="balance">⚖️ Meine Balance besser verstehen</option><option value="sleep">🌙 Schlaf und Energie beobachten</option><option value="enjoy">🌼 Schöne Momente bewusster wahrnehmen</option><option value="growth">🌱 Meine Entwicklung reflektieren</option>
+            </select>
+            <label class="setup-label" for="profile-reminder">Wann passt eine tägliche Erinnerung gut? <span>Optional</span></label>
+            <input id="profile-reminder" class="setup-input" name="preferredTime" type="time" min="18:00" max="20:59" value="20:00">
+            <p class="setup-hint">Ab dieser Uhrzeit startet ein stündlicher 4‑Stunden‑Countdown.</p>
+            <p class="setup-hint">Du kannst deine Erinnerung später einschalten, ändern oder ausschalten.</p>
+          </div>
+          <div class="setup-consent">🔒 Dein Profil bleibt auf diesem Gerät. Alle Angaben sind freiwillig und können in den Einstellungen geändert werden.</div>
+          <div class="setup-actions"><button class="button button-secondary" type="button" data-setup-back>← Zurück</button><button class="button button-primary" type="submit">Mein Profil speichern ✨</button></div>
+        </section>
+      </form>
+    </section>
+
+    <section class="view active" id="view-overview" aria-labelledby="overview-title">
+      <div class="page-heading">
+        <div><p class="eyebrow" id="today-label"></p><h1 id="overview-title">Wie geht es dir?</h1></div>
+        <span class="badge" id="today-status"></span>
+      </div>
+      <div class="daily-checkin-card">
+        <div class="daily-checkin-copy">
+          <p class="eyebrow">EIN MOMENT FÜR DICH</p>
+          <h2>Dein Tag in deinen Worten</h2>
+          <p id="focus-summary">Ein paar Minuten innehalten. Es gibt keine richtigen oder falschen Antworten.</p>
+          <div class="daily-checkin-actions">
+                <button class="button button-primary" id="start-today" type="button">Rückblick starten <span aria-hidden="true">→</span></button>
+            <button class="button button-secondary" id="edit-today" type="button" hidden>Heutigen Rückblick anpassen</button>
+          </div>
+        </div>
+        <div class="daily-mascot mascot-art" data-mascot aria-hidden="true"></div>
+      </div>
+      <div class="score-card" id="overview-score"></div>
+      <div class="section-heading"><div><p class="eyebrow">DEIN ÜBERBLICK</p><h2>Auf einen Blick</h2></div><button class="text-button" data-navigate="trends" type="button">Verlauf ansehen →</button></div>
+      <div class="stats-grid" id="overview-stats"></div>
+      <section class="card chart-card">
+        <div class="card-heading"><div><h3>Wohlbefinden im Verlauf</h3><p>Deine Einschätzung der letzten 14 Tage</p></div><span class="chart-key"><i></i> Wohlbefinden</span></div>
+        <div id="overview-chart" class="chart-wrap"></div>
+        <p class="chart-footnote">Nur erfasste Tage werden angezeigt. Fehlende Einträge werden nicht als niedrige Werte gewertet.</p>
+      </section>
+      <div class="notice"><span aria-hidden="true">ⓘ</span><p>Diese App unterstützt deine Selbstreflexion. Die Auswertungen sind keine Diagnose und ersetzen keine medizinische Beratung.</p></div>
+    </section>
+
+    <section class="view" id="view-checkin" aria-labelledby="checkin-title">
+      <div class="mascot-guide card"><span class="mascot-art" data-mascot></span><p><strong>Nori meint:</strong> <span id="checkin-mascot-message">Nimm dir Zeit – du kannst nur das beantworten, was sich heute passend anfühlt. 🌱</span></p></div>
+      <div class="page-heading">
+        <div><p class="eyebrow">TÄGLICHER RÜCKBLICK</p><h1 id="checkin-title">Dein Tag in deinen Worten</h1></div>
+      </div>
+      <div class="checkin-meta card">
+        <div class="checkin-day"><span>📅 Rückblick für</span><strong id="entry-date-label"></strong></div>
+        <input id="entry-date" type="hidden">
+        <p id="edit-hint">Du kannst Antworten später jederzeit bearbeiten. Es wird nur ein Eintrag für heute angelegt.</p>
+      </div>
+      <form id="checkin-form">
+        <div class="wizard-progress" aria-live="polite">
+          <div class="wizard-progress-label"><span id="wizard-step-label">Bereit für deinen Rückblick?</span><button class="wizard-exit" id="cancel-checkin" type="button" aria-label="Rückblick verlassen">×</button></div>
+          <div class="wizard-track"><span id="wizard-progress-fill"></span></div>
+        </div>
+        <div class="wizard-panel" id="wizard-panel" aria-live="polite"></div>
+        <div class="wizard-controls" id="wizard-controls" hidden>
+          <button class="button button-secondary" id="wizard-back" type="button">← Zurück</button>
+          <button class="button button-skip" id="wizard-skip" type="button" hidden>Überspringen</button>
+          <button class="button button-primary" id="wizard-next" type="button" disabled>Weiter →</button>
+          <button class="button button-primary" id="wizard-finish" type="submit" hidden>Rückblick speichern ✨</button>
+        </div>
+        <p class="wizard-local-note">🔒 Deine Antworten werden erst beim Abschließen gespeichert.</p>
+        <section class="card photo-editor" aria-labelledby="photo-editor-title">
+          <div class="card-heading"><div><h3 id="photo-editor-title">📷 Bilder des Tages</h3><p>Optional · bis zu 5 Bilder, nur auf diesem Gerät</p></div></div>
+          <label class="button button-secondary photo-add-button" for="today-photo-input">＋ Bilder hinzufügen</label>
+          <input id="today-photo-input" type="file" accept="image/*" capture="environment" multiple hidden>
+          <div class="photo-grid" id="today-photo-grid"></div>
+        </section>
+      </form>
+    </section>
+
+    <section class="view" id="view-trends" aria-labelledby="trends-title">
+      <div class="page-heading"><div><p class="eyebrow">LANGFRISTIGE ENTWICKLUNG</p><h1 id="trends-title">Dein Verlauf</h1></div></div>
+      <div class="mascot-guide card"><span class="mascot-art" data-mascot></span><p><strong>Nori meint:</strong> Kleine Schwankungen gehören zum Leben. Schau neugierig auf deinen Verlauf, nicht wertend. 🌈</p></div>
+      <div class="range-switch" id="range-switch" role="group" aria-label="Zeitraum auswählen">
+        <button type="button" data-range="week">Woche</button><button type="button" data-range="month" class="selected">Monat</button><button type="button" data-range="year">Jahr</button><button type="button" data-range="all">Alle</button>
+      </div>
+      <div class="stats-grid" id="trend-stats"></div>
+      <div class="score-card" id="trend-score"></div>
+      <div class="swipe-hint" aria-hidden="true">Diagramme seitlich wischen <span>←　→</span></div>
+      <div class="insight-carousel trend-chart-carousel" aria-label="Verlaufsdiagramme. Seitlich wischen für weitere Diagramme.">
+        <section class="card chart-card insight-slide">
+          <div class="card-heading"><div><h3>Wohlbefinden</h3><p>Gesamtwert · Skala 1–10</p></div></div>
+          <div id="trend-wellbeing-chart" class="chart-wrap chart-large"></div>
+          <p class="chart-footnote">Fehlende Tage bleiben Lücken.</p>
+        </section>
+        <section class="card chart-card insight-slide">
+          <div class="card-heading"><div><h3>Stress</h3><p>Höherer Wert bedeutet mehr Belastung.</p></div></div>
+          <div id="trend-stress-chart" class="chart-wrap chart-large"></div>
+          <p class="chart-footnote">Fehlende Tage bleiben Lücken.</p>
+        </section>
+        <section class="card chart-card insight-slide">
+          <div class="card-heading"><div><h3>Arbeitslast</h3><p>Höherer Wert bedeutet mehr Belastung.</p></div></div>
+          <div id="trend-workload-chart" class="chart-wrap chart-large"></div>
+          <p class="chart-footnote">Fehlende Tage bleiben Lücken.</p>
+        </section>
+        <section class="card chart-card insight-slide" id="trend-relationship-slide" hidden>
+          <div class="card-heading"><div><h3>Beziehung</h3><p>Deine Einschätzung deiner Beziehungssituation.</p></div></div>
+          <div id="trend-relationship-chart" class="chart-wrap chart-large"></div>
+          <p class="chart-footnote">Nur erfasste Beziehungstage fließen ein.</p>
+        </section>
+      </div>
+      <div class="carousel-dots trend-chart-dots" aria-hidden="true"><span class="active"></span><span></span><span></span></div>
+      <div class="section-heading"><div><p class="eyebrow">DEINE THEMEN</p><h2>Durchschnitt nach Bereich</h2></div></div>
+      <p class="chart-footnote domain-period-note" id="domain-period"></p>
+      <div class="swipe-hint" aria-hidden="true">Bereiche seitlich wischen <span>←　→</span></div>
+      <div class="domain-carousel" id="domain-bars" aria-label="Bereichsdurchschnitte. Seitlich wischen für weitere Bereiche."></div>
+      <div class="section-heading"><div><p class="eyebrow">PERSÖNLICHE MOMENTE</p><h2>Deine Rückblicke</h2></div><button class="button button-primary button-small" id="new-entry" type="button">Heutiger Rückblick</button></div>
+      <div class="period-switch" id="calendar-period-switch" role="group" aria-label="Rückblickzeitraum">
+        <button type="button" data-calendar-period="day">Tag</button><button type="button" data-calendar-period="week">Woche</button><button type="button" data-calendar-period="month" class="selected">Monat</button><button type="button" data-calendar-period="year">Jahr</button>
+      </div>
+      <section class="card calendar-summary" id="calendar-summary" aria-live="polite"></section>
+      <section class="card calendar-photos-section">
+        <div class="card-heading"><div><h3 id="calendar-photos-title">📷 Bilder des Zeitraums</h3><p>Deine persönlichen Momente</p></div></div>
+        <div class="photo-grid period-photo-grid" id="period-photo-grid"></div>
+      </section>
+      <div class="section-heading"><div><p class="eyebrow">ALLE EINTRÄGE</p><h2>Deine Tage</h2></div></div>
+      <div id="entries-list" class="entries-list"></div>
+      <div class="empty-state card" id="entries-empty" hidden><span>✳</span><h2>Noch keine Einträge</h2><p>Dein erster Rückblick ist ein guter Anfang.</p><button class="button button-primary" data-navigate="checkin" type="button">Rückblick starten</button></div>
+      <section class="card insight-slide">
+          <div class="card-heading"><div><h3>Zusammenhänge erkunden</h3><p>Wie hängen deine Einträge mit deinem Wohlbefinden zusammen?</p></div></div>
+          <div id="correlations" class="correlations"></div>
+          <p class="chart-footnote">Beschreibende Korrelationen zeigen keine Ursache-Wirkung-Beziehung. Bei wenigen Einträgen werden keine Zusammenhänge berechnet.</p>
+      </section>
+      <div class="notice"><span aria-hidden="true">ⓘ</span><p>Werte sind persönliche Selbsteinschätzungen. Veränderungen oder Zusammenhänge sind keine medizinischen Aussagen.</p></div>
+    </section>
+
+    <section class="view" id="view-entries" aria-labelledby="entries-title">
+      <h1 class="visually-hidden" id="entries-title">Kalender</h1>
+      <section class="card calendar-card" aria-label="Tageskalender">
+        <div class="calendar-heading"><button class="icon-button calendar-month-button" id="calendar-previous" type="button" aria-label="Vorheriger Monat">‹</button><h2 id="calendar-month-label"></h2><button class="icon-button calendar-month-button" id="calendar-next" type="button" aria-label="Nächster Monat">›</button></div>
+        <div class="calendar-weekdays" aria-hidden="true"><span>Mo</span><span>Di</span><span>Mi</span><span>Do</span><span>Fr</span><span>Sa</span><span>So</span></div>
+        <div class="calendar-grid" id="calendar-grid" role="grid" aria-label="Kalendertage"></div>
+      </section>
+    </section>
+
+    <section class="view" id="view-settings" aria-labelledby="settings-title">
+      <div class="page-heading"><div><p class="eyebrow">PERSÖNLICH ANPASSEN</p><h1 id="settings-title">Einstellungen</h1></div></div>
+      <div class="mascot-guide card"><span class="mascot-art" data-mascot></span><p><strong>Nori meint:</strong> Dein Kompass gehört dir – passe ihn jederzeit an. 🧭</p></div>
+      <section class="card settings-card">
+        <div class="settings-title"><span class="settings-icon">🧑‍🚀</span><div><h2>Dein persönliches Profil</h2><p id="profile-summary">Passe Interessen und Schwerpunkte an.</p></div></div>
+        <button class="button button-secondary" id="edit-profile" type="button">Profil bearbeiten</button>
+      </section>
+        <section class="card settings-card appearance-card">
+          <div class="settings-title"><span class="settings-icon">◐</span><div><h2>Erscheinungsbild</h2><p>Wähle, wie DayInStatistics auf deinem Gerät aussieht.</p></div></div>
+          <div class="theme-options" role="group" aria-label="Farbschema wählen">
+            <button type="button" class="theme-option" data-theme-option="dark" aria-pressed="false"><span aria-hidden="true">◐</span>Dunkel</button>
+            <button type="button" class="theme-option" data-theme-option="light" aria-pressed="false"><span aria-hidden="true">☼</span>Hell</button>
+            <button type="button" class="theme-option" data-theme-option="system" aria-pressed="false"><span aria-hidden="true">◒</span>System</button>
+          </div>
+        </section>
+      <section class="card settings-card">
+        <div class="settings-title"><span class="settings-icon">✨</span><div><h2>App-Erlebnis</h2><p>Gestalte die Ansicht und Begleitung passend für dich.</p></div></div>
+        <label class="toggle-row" for="compact-dashboard"><span><strong>Kompakte Startseite</strong><small>Weniger Platz für den Tagesrückblick und schneller zum Inhalt</small></span><input id="compact-dashboard" type="checkbox"><i aria-hidden="true"></i></label>
+        <label class="toggle-row" for="reduce-animations"><span><strong>Animationen reduzieren</strong><small>Übergänge und Bewegung in der App minimieren</small></span><input id="reduce-animations" type="checkbox"><i aria-hidden="true"></i></label>
+        <label class="toggle-row" for="mascot-hints"><span><strong>Nori-Hinweise anzeigen</strong><small>Den schwebenden Begleiter mit kurzen Hinweisen einblenden</small></span><input id="mascot-hints" type="checkbox"><i aria-hidden="true"></i></label>
+      </section>
+        <section class="card settings-card">
+        <div class="settings-title"><span class="settings-icon">◷</span><div><h2>Tägliche Erinnerung</h2><p>Wähle, wann du an deinen Rückblick erinnert werden möchtest.</p></div></div>
+        <label class="toggle-row" for="reminder-enabled"><span><strong>Erinnerungen aktivieren</strong><small>Werktags um 7 Uhr, am Wochenende um 10 Uhr, danach häufiger am Abend</small></span><input id="reminder-enabled" type="checkbox"><i aria-hidden="true"></i></label>
+        <label class="field-label" for="reminder-time">Start des 4‑Stunden‑Countdowns</label>
+        <input class="time-input" id="reminder-time" type="time" min="18:00" max="20:59" value="20:00">
+        <p class="setup-hint">Vor dem Countdown erinnert Nori dich zusätzlich um 17 und 19 Uhr, sofern diese Zeiten vor deiner Startzeit liegen. Ab hier erscheint stündlich eine Erinnerung mit der verbleibenden Zeit bis Mitternacht. Wegwischen stoppt die weiteren Erinnerungen nicht.</p>
+        <button class="button button-primary" id="save-reminder" type="button">Einstellungen speichern</button>
+        <p id="reminder-status" class="settings-message" role="status"></p>
+        <p class="settings-caveat">Auf Android werden lokale Benachrichtigungen auch bei geschlossener App geplant. Die pünktliche Zustellung hängt von deiner Android-Benachrichtigungs- und Akkuoptimierung ab. In einem normalen Browser erscheinen Erinnerungen nur, solange die App geöffnet ist. Du kannst sie jederzeit ausschalten.</p>
+      </section>
+      <section class="card settings-card">
+        <div class="settings-title"><span class="settings-icon">↕</span><div><h2>Deine Daten</h2><p>Antworten und Bilder bleiben lokal auf diesem Gerät.</p></div></div>
+        <div class="data-actions"><button class="button button-secondary" id="export-data" type="button">Daten exportieren</button><label class="button button-secondary file-button" for="import-file">Daten importieren</label><input id="import-file" type="file" accept="application/json,.json" hidden></div>
+        <p class="settings-caveat">Ein Export enthält deine Antworten, Notizen, optionales Profil und gespeicherte Bilder. Bewahre die Datei an einem sicheren Ort auf. Beim Import werden gleichdatierte Einträge durch die importierten ersetzt.</p>
+      </section>
+      <section class="card settings-card">
+        <div class="settings-title"><span class="settings-icon">📄</span><div><h2>Informationen</h2><p>Wichtige Hinweise zur Nutzung von DayInStatistics.</p></div></div>
+        <button class="button button-secondary" id="open-terms" type="button">Nutzungsbedingungen lesen</button>
+      </section>
+      <div class="notice"><span aria-hidden="true">ⓘ</span><p>DayInStatistics ist ein Reflexionswerkzeug und kein medizinisches Produkt. Es stellt keine Diagnosen und leitet aus Kennzahlen keine medizinischen Aussagen ab.</p></div>
+    </section>
+  </main>
+
+  <nav class="bottom-nav" aria-label="Hauptnavigation">
+    <button class="nav-item active" data-navigate="overview" type="button"><span aria-hidden="true">🏠</span><small>Start</small></button>
+    <button class="nav-item" data-navigate="checkin" type="button"><span aria-hidden="true">✨</span><small>Rückblick</small></button>
+    <button class="nav-item" data-navigate="trends" type="button"><span aria-hidden="true">📈</span><small>Verlauf</small></button>
+    <button class="nav-item" data-navigate="entries" type="button"><span aria-hidden="true">🗓️</span><small>Kalender</small></button>
+    <button class="nav-item" data-navigate="settings" type="button"><span aria-hidden="true">⚙️</span><small>Mehr</small></button>
+  </nav>
+  <aside class="mascot-sidekick" id="mascot-sidekick" data-position="bottom-right">
+    <div class="mascot-sidekick-message" id="mascot-sidekick-message" hidden><strong>Nori</strong><span>Ich bin hier, wenn du mich brauchst. 🌱</span></div>
+    <button class="sidekick-button" id="sidekick-toggle" type="button" aria-label="Nori-Hinweis einblenden" aria-expanded="false"><span class="mascot-art" data-mascot></span></button>
+  </aside>
+  <div class="streak-celebration" id="streak-celebration" role="dialog" aria-modal="true" aria-labelledby="celebration-title" aria-hidden="true" hidden>
+    <div class="celebration-particles" aria-hidden="true"></div>
+    <div class="celebration-content">
+      <span class="celebration-flame" aria-hidden="true">🔥</span>
+      <p class="eyebrow">EIN KLEINER MOMENT FÜR DICH</p>
+      <h2 id="celebration-title">Dein Feuer brennt weiter!</h2>
+      <strong id="celebration-streak-count">1 Flamme</strong>
+      <p>Ein Tag nach dem anderen. Schön, dass du dir Zeit für dich genommen hast. ✨</p>
+      <button class="button button-light" id="celebration-close" type="button">Weiter</button>
+    </div>
+  </div>
+  <div class="streak-fullscreen" id="streak-fullscreen" role="dialog" aria-modal="true" aria-labelledby="streak-fullscreen-title" aria-hidden="true" hidden>
+    <button class="streak-close" id="streak-close" type="button" aria-label="Flammenübersicht schließen">×</button>
+    <div class="streak-fullscreen-content">
+      <span class="streak-big-flame" aria-hidden="true">🔥</span>
+      <p class="eyebrow">TAG FÜR TAG</p>
+      <h2 id="streak-fullscreen-title">Dein Feuerlauf</h2>
+      <strong class="streak-fullscreen-count" id="streak-fullscreen-count">0 Tage</strong>
+      <p class="streak-fullscreen-copy">Jede Flamme steht für einen Tag, an dem du deinen Rückblick festgehalten hast.</p>
+      <div class="streak-weekdays"><span>Mo</span><span>Di</span><span>Mi</span><span>Do</span><span>Fr</span><span>Sa</span><span>So</span></div>
+      <div class="streak-days" id="streak-days" aria-label="Einträge dieser Woche"></div>
+      <div class="streak-mascot mascot-art" data-mascot aria-hidden="true"></div>
+      <button class="button button-primary" id="streak-start-today" type="button">Zum heutigen Rückblick</button>
+    </div>
+  </div>
+  <dialog class="notification-consent" id="notification-consent" aria-labelledby="notification-consent-title" aria-describedby="notification-consent-copy">
+    <div class="notification-consent-icon" aria-hidden="true">🔔</div>
+    <p class="eyebrow">DEIN TÄGLICHER RÜCKBLICK</p>
+    <h2 id="notification-consent-title">Darf DayInStatistics dich erinnern?</h2>
+    <p id="notification-consent-copy">Wenn du zustimmst, kann DayInStatistics dir lokale Erinnerungen schicken: morgens und abends sowie stündlich ab deiner gewählten Startzeit. Deine Antworten bleiben auf diesem Gerät.</p>
+    <form method="dialog" class="notification-consent-actions">
+      <button class="button button-secondary" value="deny">Nicht jetzt</button>
+      <button class="button button-primary" value="allow">Erinnerungen erlauben</button>
+    </form>
+  </dialog>
+  <dialog class="notification-consent terms-dialog" id="terms-dialog" aria-labelledby="terms-title">
+    <button class="streak-close terms-close" type="button" aria-label="Nutzungsbedingungen schließen">×</button>
+    <div class="notification-consent-icon" aria-hidden="true">📄</div>
+    <p class="eyebrow">DAYINSTATISTICS</p>
+    <h2 id="terms-title">Nutzungsbedingungen</h2>
+    <div class="terms-copy">
+      <h3>Wofür die App gedacht ist</h3>
+      <p>DayInStatistics ist ein persönliches Werkzeug zur Selbstreflexion. Es bietet keine medizinische oder psychologische Beratung, stellt keine Diagnosen und ist nicht für Notfälle gedacht. Auswertungen und mögliche Zusammenhänge sind beschreibend und erlauben keine Aussagen über Ursachen.</p>
+      <h3>Deine Angaben und dein Gerät</h3>
+      <p>Deine Antworten, dein Profil und deine Bilder werden lokal auf deinem Gerät gespeichert. Du bist dafür verantwortlich, wichtige Daten regelmäßig zu exportieren. Beim Löschen von App- oder Browserdaten können gespeicherte Inhalte verloren gehen. Ein Export kann persönliche Angaben enthalten; bewahre ihn sicher auf.</p>
+      <h3>Erinnerungen und Verfügbarkeit</h3>
+      <p>Erinnerungen sind optional. Ihre Zustellung hängt unter anderem von Geräteberechtigungen, Energiespareinstellungen und der Plattform ab. Die App garantiert weder eine bestimmte Zustellzeit noch eine unterbrechungsfreie Verfügbarkeit.</p>
+      <h3>Deine Nutzung</h3>
+      <p>Nutze die App eigenverantwortlich und trage nur Informationen ein, die du auf deinem Gerät speichern möchtest. Du kannst dein Profil ändern, Erinnerungen ausschalten und deine Daten exportieren oder durch Löschen der App-Daten entfernen.</p>
+      <p class="terms-updated">Diese Hinweise beschreiben die aktuelle Nutzung der App und ersetzen keine individuelle Rechtsberatung.</p>
+    </div>
+    <form method="dialog" class="notification-consent-actions"><button class="button button-primary">Schließen</button></form>
+  </dialog>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <div class="reflection-overlay" id="reflection-overlay" role="dialog" aria-modal="true" aria-labelledby="reflection-title" aria-hidden="true" hidden>
+    <section class="reflection-dialog">
+      <button class="streak-close reflection-close" id="reflection-close" type="button" aria-label="Tagesrückblick schließen">×</button>
+      <p class="eyebrow">DEIN TAGESRÜCKBLICK</p>
+      <h2 id="reflection-title"></h2>
+      <div class="reflection-answers" id="reflection-answers"></div>
+      <section class="card reflection-photos" id="reflection-photos-section" hidden>
+        <h3>📷 Bilder des Tages</h3>
+        <div class="photo-grid" id="reflection-photos"></div>
+      </section>
+    </section>
+  </div>
+  <script src="app.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,15 @@
+{
+  "name": "DayInStatistics – persönlicher Tagesrückblick",
+  "short_name": "DayInStatistics",
+  "description": "Ein neutraler, persönlicher Tagesrückblick mit langfristiger Auswertung.",
+  "lang": "de",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0b1110",
+  "theme_color": "#0b1110",
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" },
+    { "src": "apple-touch-icon.png", "sizes": "180x180", "type": "image/png", "purpose": "any" }
+  ]
+}
