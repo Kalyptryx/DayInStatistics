@@ -23391,6 +23391,9 @@ ${suffix}`;
       const under14 = isUnder14Profile();
       const hasAdultAccount = Boolean(user && !isAnonymous);
       const adultConfirmed = document.getElementById("premium-guardian-confirm").checked;
+      document.getElementById("header-premium-cta").hidden = active;
+      document.getElementById("header-premium-badge").hidden = !active;
+      document.body.classList.toggle("premium-active", active);
       document.getElementById("premium-auth-view").hidden = !configured || Boolean(user) || under14;
       document.getElementById("premium-guardian-view").hidden = !configured || !hasAdultAccount;
       document.getElementById("premium-child-view").hidden = !configured || !under14 && !isAnonymous || hasAdultAccount;
@@ -23446,7 +23449,10 @@ ${suffix}`;
       document.getElementById("premium-view-offer").hidden = active;
       document.getElementById("premium-view-offer").disabled = !configured || billingState.loading || active;
       document.getElementById("premium-purchase-confirm-button").textContent = user && !isAnonymous ? "Weiter zum sicheren Bezahlvorgang" : "Konto erstellen oder anmelden";
-      document.getElementById("premium-purchase-confirm-button").disabled = billingState.loading || Boolean(user && !isAnonymous) && !document.getElementById("premium-purchase-confirm").checked;
+      document.getElementById("premium-purchase-confirm-button").disabled = billingState.loading || !configured || Boolean(user && !isAnonymous) && !document.getElementById("premium-purchase-confirm").checked;
+      if (!configured && document.getElementById("premium-purchase-dialog").open) {
+        document.getElementById("premium-purchase-status").textContent = billingState.error || "Premium-Zahlungen sind derzeit noch nicht eingerichtet. Ein Kauf ist noch nicht m\xF6glich.";
+      }
       document.getElementById("premium-manage").disabled = !configured || billingState.loading || !user || isAnonymous || !billingState.entitlement?.canManage;
       document.getElementById("premium-child-invite").disabled = !configured || billingState.loading || !active || billingState.entitlement?.role !== "guardian" || !adultConfirmed;
       document.getElementById("premium-sign-out").disabled = billingState.loading;
@@ -23502,7 +23508,8 @@ ${suffix}`;
         await action();
       } catch (error) {
         console.error("Premium-Aktion fehlgeschlagen.", error);
-        billingState.error = error instanceof Error ? error.message : "Die Premium-Aktion ist fehlgeschlagen.";
+        const message = error instanceof Error ? error.message : "Die Premium-Aktion ist fehlgeschlagen.";
+        billingState.error = /error sending (?:confirmation|magic link) email/i.test(message) ? `${message}. Supabase konnte die E-Mail nicht zustellen. Pr\xFCfe im Supabase-Dashboard unter Authentication \u2192 SMTP Settings den Mailversand und unter Authentication \u2192 Logs den genauen Zustellfehler. Ohne eigenen SMTP-Dienst versendet Supabase nur an vorab autorisierte Team-Adressen und stark begrenzt.` : message;
         billingState.message = "";
       } finally {
         billingState.loading = false;
@@ -23529,12 +23536,6 @@ ${suffix}`;
       });
     }
     function openPremiumPurchaseDialog() {
-      if (!billingClient) {
-        setPremiumMessage("Premium-Zahlungen sind noch nicht eingerichtet.", true);
-        navigate("settings");
-        document.getElementById("premium-settings").scrollIntoView({ behavior: "smooth", block: "start" });
-        return;
-      }
       if (hasPremiumAccess()) {
         setPremiumMessage("Premium ist f\xFCr dieses Konto bereits aktiv.");
         navigate("settings");
@@ -23542,7 +23543,7 @@ ${suffix}`;
       }
       const dialog = document.getElementById("premium-purchase-dialog");
       document.getElementById("premium-purchase-confirm").checked = false;
-      document.getElementById("premium-purchase-status").textContent = "";
+      document.getElementById("premium-purchase-status").textContent = billingClient ? "" : billingState.error || "Premium-Zahlungen sind derzeit noch nicht eingerichtet. Ein Kauf ist noch nicht m\xF6glich.";
       document.getElementById("premium-purchase-confirm-button").disabled = false;
       renderPremiumSettings();
       if (!dialog.open) dialog.showModal();
@@ -24016,9 +24017,10 @@ ${suffix}`;
     document.getElementById("premium-guardian-confirm").addEventListener("change", renderPremiumSettings);
     document.getElementById("premium-child-confirm").addEventListener("change", renderPremiumSettings);
     document.getElementById("premium-view-offer").addEventListener("click", openPremiumPurchaseDialog);
+    document.getElementById("header-premium-cta").addEventListener("click", openPremiumPurchaseDialog);
     document.getElementById("premium-purchase-confirm").addEventListener("change", (event) => {
       const user = billingState.session?.user || null;
-      document.getElementById("premium-purchase-confirm-button").disabled = billingState.loading || Boolean(user && !user.is_anonymous) && !event.currentTarget.checked;
+      document.getElementById("premium-purchase-confirm-button").disabled = billingState.loading || !billingClient || Boolean(user && !user.is_anonymous) && !event.currentTarget.checked;
     });
     document.getElementById("premium-purchase-close").addEventListener("click", () => {
       document.getElementById("premium-purchase-dialog").close();
