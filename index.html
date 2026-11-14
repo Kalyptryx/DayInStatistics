@@ -32,14 +32,14 @@
   <main>
     <section class="view onboarding-view" id="view-onboarding" aria-labelledby="onboarding-title">
       <div class="setup-progress" aria-label="Einrichtungsschritt">
-        <span class="setup-progress-copy" id="setup-progress-copy">Schritt 1 von 3</span>
+        <span class="setup-progress-copy" id="setup-progress-copy">Schritt 1 von 4</span>
         <div class="setup-progress-track"><span id="setup-progress-fill"></span></div>
       </div>
       <div class="setup-mascot card">
         <div class="setup-mascot-art mascot-art" data-mascot></div>
         <div><p class="eyebrow">DEIN KLEINER BEGLEITER</p><h2 id="mascot-greeting">Hallo! Ich bin Nori 👋</h2><p id="mascot-message">Ich begleite dich durch die Einrichtung. Teile nur, womit du dich wohlfühlst – du kannst alles später ändern.</p></div>
       </div>
-      <form id="onboarding-form">
+      <form id="onboarding-form" novalidate>
         <section class="setup-step active" data-setup-step="1">
           <div class="page-heading"><div><p class="eyebrow">SCHÖN, DASS DU DA BIST</p><h1 id="onboarding-title">Richte deinen Kompass ein</h1></div></div>
           <p class="setup-intro">Ein paar freiwillige Angaben helfen, Fragen, Rückblicke und Einblicke besser auf dich abzustimmen.</p>
@@ -48,7 +48,7 @@
             <input id="profile-name" class="setup-input" name="name" type="text" maxlength="32" autocomplete="nickname" placeholder="Dein Name oder Spitzname">
             <label class="setup-label" for="profile-age">Welche Altersgruppe passt zu dir? <span>Optional</span></label>
             <select id="profile-age" class="setup-input" name="ageRange">
-              <option value="">Möchte ich nicht angeben</option><option value="6-10">6–10</option><option value="11-17">11–17</option><option value="under-18">Unter 18 (nicht genauer angeben)</option><option value="18-24">18–24</option><option value="25-34">25–34</option><option value="35-44">35–44</option><option value="45-54">45–54</option><option value="55-64">55–64</option><option value="65-plus">65 oder älter</option>
+              <option value="">Möchte ich nicht angeben</option><option value="6-10">6–10</option><option value="11-13">11–13</option><option value="14-17">14–17</option><option value="11-17">11–17 (ältere Auswahl)</option><option value="under-18">Unter 18 (nicht genauer angeben)</option><option value="18-24">18–24</option><option value="25-34">25–34</option><option value="35-44">35–44</option><option value="45-54">45–54</option><option value="55-64">55–64</option><option value="65-plus">65 oder älter</option>
             </select>
             <label class="setup-label" for="profile-relationship-status">Beziehungsstatus <span>Optional</span></label>
             <select id="profile-relationship-status" class="setup-input" name="relationshipStatus">
@@ -120,7 +120,43 @@
             <p class="setup-hint">Du kannst deine Erinnerung später einschalten, ändern oder ausschalten.</p>
           </div>
           <div class="setup-consent">🔒 Dein Profil bleibt auf diesem Gerät. Alle Angaben sind freiwillig und können in den Einstellungen geändert werden.</div>
-          <div class="setup-actions"><button class="button button-secondary" type="button" data-setup-back>← Zurück</button><button class="button button-primary" type="submit">Mein Profil speichern ✨</button></div>
+          <div class="setup-actions"><button class="button button-secondary" type="button" data-setup-back>← Zurück</button><button class="button button-primary" id="setup-account-step-next" type="button" data-setup-next>Weiter <span>→</span></button><button class="button button-primary" id="setup-profile-save" type="submit">Mein Profil speichern ✨</button></div>
+        </section>
+        <section class="setup-step" data-setup-step="4">
+          <div class="page-heading"><div><p class="eyebrow">FREIWILLIGES KONTO</p><h1>Möchtest du ein Konto verbinden? 🔐</h1></div></div>
+          <p class="setup-intro">Ein Konto ist optional. Es hilft dir, Premium auf mehreren Geräten zu nutzen. Deine Rückblicke und Bilder bleiben weiterhin nur auf diesem Gerät.</p>
+          <div class="card setup-card setup-account-card">
+            <h2>DayInStatistics-Konto</h2>
+            <p class="setup-hint" id="setup-account-unavailable" hidden>Die Konto-Verbindung ist momentan nicht verfügbar. Du kannst dein Konto später in den Einstellungen erstellen.</p>
+            <p class="setup-hint" id="setup-account-signed-in" hidden></p>
+            <div id="setup-account-form">
+              <div class="premium-actions" id="setup-account-choice">
+                <button class="button button-secondary" id="setup-account-choose-sign-in" type="button">Ich habe schon ein Konto</button>
+                <button class="button button-primary" id="setup-account-choose-sign-up" type="button">Konto erstellen</button>
+              </div>
+              <p class="setup-hint" id="setup-account-choice-note">Ab 14 kannst du ein eigenes Konto erstellen. Unter 14 richtet eine erziehungsberechtigte Person das Konto ein.</p>
+              <div id="setup-account-credentials" hidden>
+                <label class="setup-label" id="setup-account-email-label" for="setup-account-email">E-Mail-Adresse</label>
+                <input id="setup-account-email" class="setup-input" type="email" autocomplete="email" maxlength="254" placeholder="name@beispiel.de">
+                <label class="premium-consent"><input id="setup-account-adult-confirm" type="checkbox"><span id="setup-account-age-copy">Ich bin mindestens 18 Jahre alt.</span></label>
+                <p class="setup-hint" id="setup-account-age-hint">Ab 14 kannst du ein eigenes Konto erstellen. Unter 14 richtet eine erziehungsberechtigte Person das Konto ein.</p>
+                <div class="premium-actions">
+                  <button class="button button-secondary" id="setup-account-sign-in" type="button">Anmeldecode senden</button>
+                  <button class="button button-primary" id="setup-account-sign-up" type="button">Registrierungscode senden</button>
+                  <button class="button button-secondary" id="setup-account-change-mode" type="button">Zurück zur Auswahl</button>
+                </div>
+              </div>
+              <div id="setup-account-otp-row" hidden>
+                <p id="setup-account-otp-email" class="premium-account-email"></p>
+                <label class="setup-label" for="setup-account-otp">E-Mail-Code</label>
+                <input id="setup-account-otp" class="setup-input premium-code-input" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="8">
+                <button class="button button-secondary" id="setup-account-verify-otp" type="button">Code bestätigen</button>
+              </div>
+              <p class="settings-message" id="setup-account-status" role="status" aria-live="polite"></p>
+            </div>
+          </div>
+          <div class="setup-consent">Du kannst diesen Schritt überspringen und später in den Einstellungen ein Konto erstellen oder dich anmelden.</div>
+          <div class="setup-actions"><button class="button button-secondary" type="button" data-setup-back>← Zurück</button><button class="button button-primary" id="setup-account-skip" type="submit">Ohne Konto starten</button></div>
         </section>
       </form>
     </section>
@@ -177,9 +213,9 @@
         </div>
         <p class="wizard-local-note">🔒 Deine Antworten werden erst beim Abschließen gespeichert.</p>
         <section class="card photo-editor" aria-labelledby="photo-editor-title">
-          <div class="card-heading"><div><h3 id="photo-editor-title">📷 Bilder des Tages</h3><p>Optional · bis zu 5 Bilder, nur auf diesem Gerät</p></div></div>
-          <label class="button button-secondary photo-add-button" for="today-photo-input">＋ Bilder hinzufügen</label>
-          <input id="today-photo-input" type="file" accept="image/*" capture="environment" multiple hidden>
+          <div class="card-heading"><div><h3 id="photo-editor-title">📷 Bilder des Tages</h3><p id="photo-limit-copy">Optional · bis zu 3 Bilder pro Tag kostenlos, nur auf diesem Gerät</p></div></div>
+          <label class="button button-secondary photo-add-button" for="today-photo-input">＋ Bilder aus Galerie hinzufügen</label>
+          <input id="today-photo-input" type="file" accept="image/*" multiple hidden>
           <div class="photo-grid" id="today-photo-grid"></div>
         </section>
       </form>
@@ -265,55 +301,74 @@
       <div class="mascot-guide card"><span class="mascot-art" data-mascot></span><p><strong>Nori meint:</strong> Dein Kompass gehört dir – passe ihn jederzeit an. 🧭</p></div>
       <section class="card settings-card premium-card" id="premium-settings">
         <div class="settings-title"><span class="settings-icon">✨</span><div><h2>DayInStatistics Premium</h2><p>Langzeitverläufe und Zusatzanalysen auf deinen Geräten freischalten.</p></div></div>
-        <div class="premium-offer">
+        <div class="premium-offer" id="premium-offer">
           <strong>3,50 € / Monat</strong><span>oder</span><strong>35 € / Jahr</strong>
           <small>Automatisch verlängerndes Abo · Verwaltung und Kündigung jederzeit über den Zahlungsanbieter.</small>
         </div>
-        <p class="premium-privacy">🔒 Deine Rückblicke, Notizen und Bilder bleiben auf deinem Gerät. Für Kaufstatus und Einladungen werden nur Konto- und Abo-Daten verarbeitet.</p>
+        <p class="premium-privacy" id="premium-privacy">🔒 Deine Rückblicke, Notizen und Bilder bleiben auf deinem Gerät. Für Kaufstatus und Einladungen werden nur Konto- und Abo-Daten verarbeitet.</p>
         <p id="premium-status" class="settings-message" role="status" aria-live="polite">Premium-Verbindung wird geprüft …</p>
         <div id="premium-auth-view" class="premium-section" hidden>
-          <form id="premium-auth-form" class="premium-form">
-            <label class="field-label" for="premium-email">E-Mail des Elternteils oder volljährigen Nutzers</label>
-            <input id="premium-email" class="setup-input" type="email" autocomplete="email" maxlength="254" required>
-            <label class="field-label" for="premium-password">Passwort</label>
-            <input id="premium-password" class="setup-input" type="password" autocomplete="current-password" minlength="8" required>
-            <label class="premium-consent"><input id="premium-adult-confirm" type="checkbox"><span>Ich bin mindestens 18 Jahre alt und kaufe selbst oder als Erziehungsberechtigte:r.</span></label>
-            <div class="premium-actions">
-              <button class="button button-secondary" id="premium-sign-in" type="button">Anmeldecode senden</button>
-              <button class="button button-primary" id="premium-send-link" type="button">Konto erstellen &amp; Code senden</button>
-            </div>
-            <div class="premium-otp-row" id="premium-otp-row" hidden>
-              <p id="premium-otp-email" class="premium-account-email"></p>
-              <label class="field-label" for="premium-otp">E-Mail-Code</label>
-              <input id="premium-otp" class="setup-input premium-code-input" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="8">
-              <button class="button button-secondary" id="premium-verify-otp" type="button">Code bestätigen</button>
-            </div>
-          </form>
+          <div class="premium-actions">
+            <button class="button button-secondary" id="premium-open-sign-in" type="button">Anmelden</button>
+            <button class="button button-primary" id="premium-open-sign-up" type="button">Registrieren</button>
+          </div>
         </div>
         <div id="premium-guardian-view" class="premium-section" hidden>
           <p id="premium-account-email" class="premium-account-email"></p>
-          <label class="premium-consent"><input id="premium-guardian-confirm" type="checkbox"><span>Ich bin mindestens 18 Jahre alt und kaufe selbst oder als Erziehungsberechtigte:r. Eine Einladung gilt für ein Kinderprofil.</span></label>
-          <div class="premium-actions">
-            <button class="button button-primary" id="premium-buy-monthly" type="button">Monatsabo starten</button>
-            <button class="button button-primary" id="premium-buy-yearly" type="button">Jahresabo starten</button>
+          <div class="premium-acquire-card" id="premium-acquire-section">
+            <h3>Premium erwerben</h3>
+            <p>Schalte Langzeitverläufe und Zusatzanalysen frei.</p>
+            <button class="button button-primary" id="premium-view-offer" type="button">Premium erwerben</button>
           </div>
           <div class="premium-actions">
             <button class="button button-secondary" id="premium-manage" type="button">Abo verwalten / kündigen</button>
-            <button class="button button-secondary" id="premium-child-invite" type="button">Kinderprofil einladen</button>
           </div>
+          <label class="premium-consent"><input id="premium-guardian-confirm" type="checkbox"><span>Ich bin mindestens 18 Jahre alt und möchte ein Kinderprofil einladen.</span></label>
+          <button class="button button-secondary" id="premium-child-invite" type="button">Kinderprofil einladen</button>
           <p id="premium-invite-code" class="premium-invite-code" hidden></p>
           <button class="button button-secondary" id="premium-sign-out" type="button">Abmelden</button>
           <button class="button button-danger" id="premium-delete-account" type="button">Konto und Abo löschen</button>
         </div>
         <div id="premium-child-view" class="premium-section">
-          <h3>Kinderprofil freischalten</h3>
-          <p>Ein Elternteil kann ein Premium-Abo verwalten und einen einmaligen Einladungscode erstellen. Geteilte Rückblicke oder Notizen sind für das Elternteil nicht sichtbar.</p>
-          <label class="field-label" for="premium-child-code">Einladungscode</label>
-          <input id="premium-child-code" class="setup-input premium-code-input" type="text" inputmode="text" autocomplete="one-time-code" maxlength="10" aria-describedby="premium-child-consent">
-          <label class="premium-consent" id="premium-child-consent"><input id="premium-child-confirm" type="checkbox"><span>Mein Elternteil oder meine erziehungsberechtigte Person hat mir diesen Code gegeben.</span></label>
-          <button class="button button-secondary" id="premium-claim-child" type="button">Mit Code freischalten</button>
+          <h3 id="premium-child-heading">Elternkonto verbinden</h3>
+          <p id="premium-child-copy">Ein Elternteil kann sich hier anmelden oder ein Konto erstellen und Premium erwerben. Alternativ kann ein bereits eingeladener Code verwendet werden. Rückblicke und Bilder bleiben auf diesem Gerät und sind für das Elternkonto nicht sichtbar.</p>
+          <button class="button button-primary" id="premium-connect-parent" type="button">Elternkonto verbinden</button>
+          <div id="premium-child-connected" class="premium-acquire-card" hidden>
+            <strong>Elternkonto verbunden ✓</strong>
+            <p>Premium ist für dieses Profil aktiv. Deine Rückblicke bleiben privat auf diesem Gerät.</p>
+          </div>
+          <div id="premium-child-code-form" class="premium-child-code-form">
+            <p class="setup-hint">Hat dein Elternteil Premium auf einem anderen Gerät erworben? Lass dir dort einen Einladungscode erstellen und gib ihn hier ein.</p>
+            <label class="field-label" for="premium-child-code">Einladungscode</label>
+            <input id="premium-child-code" class="setup-input premium-code-input" type="text" inputmode="text" autocomplete="one-time-code" maxlength="10" aria-describedby="premium-child-consent">
+            <label class="premium-consent" id="premium-child-consent"><input id="premium-child-confirm" type="checkbox"><span>Mein Elternteil oder meine erziehungsberechtigte Person hat mir diesen Code gegeben.</span></label>
+            <button class="button button-secondary" id="premium-claim-child" type="button">Mit Einladungscode verbinden</button>
+          </div>
         </div>
       </section>
+      <dialog class="notification-consent premium-auth-dialog" id="premium-auth-dialog" aria-labelledby="premium-auth-title">
+        <button class="streak-close terms-close" id="premium-auth-close" type="button" aria-label="Konto-Fenster schließen">×</button>
+        <div class="notification-consent-icon" aria-hidden="true">🔐</div>
+        <p class="eyebrow">DAYINSTATISTICS-KONTO</p>
+        <h2 id="premium-auth-title">Anmelden</h2>
+        <form id="premium-auth-form" class="premium-form">
+          <label class="field-label" id="premium-email-label" for="premium-email">E-Mail-Adresse</label>
+          <input id="premium-email" class="setup-input" type="email" autocomplete="email" maxlength="254" required>
+          <label class="premium-consent"><input id="premium-adult-confirm" type="checkbox"><span>Ich bin mindestens 18 Jahre alt.</span></label>
+          <div class="premium-actions">
+            <button class="button button-secondary" id="premium-sign-in" type="button">Anmeldecode senden</button>
+            <button class="button button-primary" id="premium-send-link" type="button">Registrierungscode senden</button>
+          </div>
+          <button class="text-button premium-auth-switch" id="premium-switch-auth-mode" type="button"></button>
+          <div class="premium-otp-row" id="premium-otp-row" hidden>
+            <p id="premium-otp-email" class="premium-account-email"></p>
+            <label class="field-label" for="premium-otp">E-Mail-Code</label>
+            <input id="premium-otp" class="setup-input premium-code-input" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="8">
+            <button class="button button-secondary" id="premium-verify-otp" type="button">Code bestätigen</button>
+          </div>
+          <p class="settings-message" id="premium-auth-status" role="status" aria-live="polite"></p>
+        </form>
+      </dialog>
       <section class="card settings-card">
         <div class="settings-title"><span class="settings-icon">🧑‍🚀</span><div><h2>Dein persönliches Profil</h2><p id="profile-summary">Passe Interessen und Schwerpunkte an.</p></div></div>
         <button class="button button-secondary" id="edit-profile" type="button">Profil bearbeiten</button>
@@ -400,6 +455,44 @@
       <button class="button button-secondary" value="deny">Nicht jetzt</button>
       <button class="button button-primary" value="allow">Erinnerungen erlauben</button>
     </form>
+  </dialog>
+  <dialog class="premium-store-dialog" id="premium-purchase-dialog" aria-labelledby="premium-purchase-title">
+    <header class="premium-store-header">
+      <a class="brand" href="#overview" aria-label="DayInStatistics">
+        <span class="brand-mark" aria-hidden="true">✨</span>
+        <span><strong>DayInStatistics</strong><small>Premium</small></span>
+      </a>
+      <button class="icon-button" id="premium-purchase-close" type="button" aria-label="Premium-Ansicht schließen">×</button>
+    </header>
+    <div class="premium-store-scroll">
+      <section class="premium-store-hero">
+        <p class="eyebrow">MEHR ZEIT FÜR DEINEN WEG</p>
+        <h1 id="premium-purchase-title">Dein Leben im größeren Zusammenhang ✨</h1>
+        <p>Erkenne Entwicklungen über längere Zeiträume und entdecke beschreibende Zusammenhänge in deinen eigenen Einträgen.</p>
+      </section>
+      <section class="premium-benefits" aria-label="Premium-Vorteile">
+        <article class="premium-benefit"><span aria-hidden="true">📈</span><div><h2>Dein ganzer Verlauf</h2><p>Jahres-, Gesamt- und ältere Monatsverläufe statt nur der letzten drei Monate.</p></div></article>
+        <article class="premium-benefit"><span aria-hidden="true">🔎</span><div><h2>Zusammenhänge erkunden</h2><p>Beschreibende Analysen zeigen, welche erfassten Faktoren gemeinsam mit deinem Wohlbefinden schwanken können. Das sind keine Diagnosen und kein Nachweis von Ursachen.</p></div></article>
+        <article class="premium-benefit"><span aria-hidden="true">📷</span><div><h2>Mehr Raum für Momente</h2><p>Unbegrenzt viele Bilder pro Tag festhalten. Deine Bilder bleiben auf deinem Gerät.</p></div></article>
+        <article class="premium-benefit"><span aria-hidden="true">🔒</span><div><h2>Deine Einträge bleiben privat</h2><p>Für Konto und Abo werden keine Antworten, Notizen oder Bilder übertragen.</p></div></article>
+      </section>
+      <section class="premium-store-plans" aria-labelledby="premium-plans-title">
+        <p class="eyebrow">FLEXIBEL WÄHLEN</p>
+        <h2 id="premium-plans-title">Ein Abo, das zu dir passt</h2>
+        <fieldset class="premium-plan-options">
+          <legend class="visually-hidden">Abrechnungszeitraum</legend>
+          <label class="premium-plan-option"><input type="radio" name="premium-plan" value="monthly" checked><span><strong>Monatlich</strong><small>3,50 € pro Monat</small></span></label>
+          <label class="premium-plan-option premium-plan-yearly"><input type="radio" name="premium-plan" value="yearly"><span><strong>Jährlich <em>2 Monate sparen</em></strong><small>35 € pro Jahr · entspricht 2,92 € pro Monat</small></span></label>
+        </fieldset>
+        <p class="premium-renewal-note">Automatische Verlängerung. Vor der Zahlung siehst du beim Zahlungsanbieter nochmals den Preis und die Bedingungen. Du kannst dein Abo dort jederzeit verwalten oder kündigen.</p>
+      </section>
+      <p class="premium-store-status settings-message" id="premium-purchase-status" role="status" aria-live="polite"></p>
+    </div>
+    <footer class="premium-store-footer">
+      <label class="premium-consent premium-purchase-confirm" id="premium-purchase-consent-row"><input id="premium-purchase-confirm" type="checkbox"><span>Ich bin mindestens 18 Jahre alt oder meine erziehungsberechtigte Person stimmt diesem Kauf zu.</span></label>
+      <button class="button button-primary premium-store-cta" id="premium-purchase-confirm-button" type="button">Konto erstellen oder anmelden</button>
+      <p id="premium-store-account-note">Vor dem Kauf wird eine E-Mail-Adresse mit deinem Konto verknüpft.</p>
+    </footer>
   </dialog>
   <dialog class="notification-consent terms-dialog" id="terms-dialog" aria-labelledby="terms-title">
     <button class="streak-close terms-close" type="button" aria-label="Nutzungsbedingungen schließen">×</button>

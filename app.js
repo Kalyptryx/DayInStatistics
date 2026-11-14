@@ -21735,7 +21735,7 @@ ${suffix}`;
     const SETTINGS_KEY = "lebenskompass.settings.v1";
     const PHOTO_DB_NAME = "lebenskompass.photos.v1";
     const PHOTO_STORE = "photos";
-    const MAX_DAILY_PHOTOS = 5;
+    const FREE_DAILY_PHOTOS = 3;
     const MAX_PHOTO_BYTES = 15e5;
     const FREE_MONTH_COUNT = 3;
     const SCALE_HINT = "\u{1F641} \xDCberhaupt nicht / extrem schlecht \xB7 \u{1F610} Mittelm\xE4\xDFig / neutral \xB7 \u{1F929} Vollst\xE4ndig / ausgezeichnet";
@@ -21898,6 +21898,9 @@ ${suffix}`;
     let toastTimer;
     let setupStep = 1;
     let editingProfile = false;
+    let setupAccountMode = "";
+    let premiumAuthMode = "";
+    let pendingPremiumPlan = "";
     let wizardQuestions = [];
     let wizardAnswers = {};
     let wizardIndex = 0;
@@ -22184,24 +22187,60 @@ ${suffix}`;
       art.innerHTML = mascotMarkup(mood);
     }
     function showSetupStep(step) {
-      setupStep = Math.max(1, Math.min(3, step));
+      const stepCount = editingProfile ? 3 : 4;
+      setupStep = Math.max(1, Math.min(stepCount, step));
       document.querySelectorAll(".setup-step").forEach((section) => {
         section.classList.toggle("active", Number(section.dataset.setupStep) === setupStep);
       });
-      document.getElementById("setup-progress-copy").textContent = `Schritt ${setupStep} von 3`;
-      document.getElementById("setup-progress-fill").style.width = `${setupStep / 3 * 100}%`;
+      document.getElementById("setup-progress-copy").textContent = `Schritt ${setupStep} von ${stepCount}`;
+      document.getElementById("setup-progress-fill").style.width = `${setupStep / stepCount * 100}%`;
       const name = document.getElementById("profile-name").value.trim();
       document.getElementById("mascot-greeting").textContent = name ? `Sch\xF6n, dass du da bist, ${name}! \u{1F44B}` : "Hallo! Ich bin Nori \u{1F44B}";
       document.getElementById("mascot-message").textContent = [
         "Ich begleite dich durch die Einrichtung. Teile nur, womit du dich wohlf\xFChlst \u2013 du kannst alles sp\xE4ter \xE4ndern.",
         "Erz\xE4hl mir ein bisschen von den Dingen und Menschen, die deinen Alltag ausmachen. \u{1F33F}",
-        "W\xE4hle, was dich interessiert. Ich passe kleine Fragen und Einblicke daran an. Es gibt kein richtig oder falsch. \u2728"
+        "W\xE4hle, was dich interessiert. Ich passe kleine Fragen und Einblicke daran an. Es gibt kein richtig oder falsch. \u2728",
+        "Ein Konto ist freiwillig. Deine R\xFCckblicke bleiben auf deinem Ger\xE4t. \u{1F512}"
       ][setupStep - 1];
+      renderSetupAccountStep();
+    }
+    function renderSetupAccountStep() {
+      const configured = Boolean(billingClient);
+      const user = billingState.session?.user || null;
+      const isSignedIn = Boolean(user && !user.is_anonymous);
+      document.getElementById("setup-account-unavailable").hidden = configured;
+      document.getElementById("setup-account-signed-in").hidden = !isSignedIn;
+      document.getElementById("setup-account-signed-in").textContent = isSignedIn ? `Bereits angemeldet als ${user.email || "Erwachsenenkonto"}. Du kannst die Einrichtung abschlie\xDFen.` : "";
+      document.getElementById("setup-account-form").hidden = !configured || isSignedIn;
+      document.getElementById("setup-account-choice").hidden = Boolean(setupAccountMode);
+      document.getElementById("setup-account-credentials").hidden = !setupAccountMode;
+      document.getElementById("setup-account-sign-in").hidden = setupAccountMode !== "sign-in";
+      document.getElementById("setup-account-sign-up").hidden = setupAccountMode !== "sign-up";
+      document.getElementById("setup-account-otp-row").hidden = !configured || !billingState.otpEmail || isSignedIn || !setupAccountMode;
+      document.getElementById("setup-account-otp-email").textContent = billingState.otpEmail ? `Der Code wurde an ${billingState.otpEmail} gesendet.` : "";
+      const ageRange = document.getElementById("profile-age").value;
+      const under14 = isUnder14AgeRange(ageRange);
+      document.getElementById("setup-account-choice-note").textContent = under14 ? "Unter 14 muss eine erziehungsberechtigte Person das Konto einrichten. Du kannst diesen Schritt auch \xFCberspringen." : "Ab 14 kannst du ein eigenes Konto erstellen. Deine R\xFCckblicke bleiben auf diesem Ger\xE4t.";
+      document.getElementById("setup-account-email-label").textContent = under14 ? "E-Mail-Adresse des Elternteils" : "E-Mail-Adresse";
+      document.getElementById("setup-account-age-copy").textContent = under14 ? "Ich bin mindestens 18 Jahre alt und richte das Konto als erziehungsberechtigte Person ein." : ["14-17"].includes(ageRange) ? "Ich bin mindestens 14 Jahre alt." : "Ich bin mindestens 18 Jahre alt.";
+      document.getElementById("setup-account-age-hint").textContent = under14 ? "Unter 14 muss eine erziehungsberechtigte Person das Konto einrichten. Du kannst diesen Schritt auch \xFCberspringen." : "Ab 14 kannst du ein eigenes Konto erstellen. Deine R\xFCckblicke bleiben auf diesem Ger\xE4t.";
+      const adultConfirmed = document.getElementById("setup-account-adult-confirm").checked;
+      document.getElementById("setup-account-sign-in").disabled = !configured || billingState.loading || !adultConfirmed;
+      document.getElementById("setup-account-sign-up").disabled = !configured || billingState.loading || !adultConfirmed;
+      document.getElementById("setup-account-verify-otp").disabled = !configured || billingState.loading || !billingState.otpEmail;
+      document.getElementById("setup-account-status").textContent = !configured ? "Die Konto-Verbindung ist noch nicht verf\xFCgbar. Du kannst dein Konto sp\xE4ter in den Einstellungen erstellen." : billingState.loading ? "Bitte einen Moment \u2026" : billingState.error || billingState.message;
+      document.getElementById("setup-account-status").dataset.premiumError = String(Boolean(billingState.error));
     }
     function startOnboarding(edit = false) {
       editingProfile = edit;
       document.getElementById("onboarding-title").textContent = edit ? "Dein Kompass, deine Wahl" : "Richte deinen Kompass ein";
       document.getElementById("onboarding-form").reset();
+      setupAccountMode = "";
+      document.getElementById("setup-account-step-next").hidden = edit;
+      document.getElementById("setup-profile-save").hidden = !edit;
+      document.getElementById("setup-account-status").textContent = "";
+      document.getElementById("setup-account-email").value = billingState.otpEmail;
+      document.getElementById("setup-account-otp").value = "";
       if (profile) {
         document.getElementById("profile-name").value = profile.name || "";
         document.getElementById("profile-age").value = profile.ageRange || "";
@@ -22245,6 +22284,7 @@ ${suffix}`;
         localStorage.setItem(SETTINGS_KEY, JSON.stringify(updatedSettings));
         settings = updatedSettings;
         profile = nextProfile;
+        renderPremiumSettings();
         document.body.classList.remove("onboarding-active");
         renderOverview();
         if (editingProfile) navigate("settings");
@@ -22368,7 +22408,7 @@ ${suffix}`;
       if (ageRange === "6-10") {
         return { id: "mood", question: "Wie war dein Tag?", type: "choice", options: ["Toll", "Gut", "So mittel", "Schwierig", "Ganz unterschiedlich"] };
       }
-      if (ageRange === "11-17" || ageRange === "under-18") {
+      if (["11-13", "14-17", "11-17", "under-18"].includes(ageRange)) {
         return { id: "mood", question: "Was hat heute am meisten zu deiner Stimmung beigetragen?", type: "choice", options: ["Freundschaften", "Familie", "Schule", "Freizeit oder Hobby", "Soziale Medien", "Schlaf oder Energie", "Etwas anderes"] };
       }
       if (ageRange === "65-plus") {
@@ -22796,9 +22836,10 @@ ${suffix}`;
       try {
         const photos = await getPhotosForDate(localDate());
         renderPhotoGrid(grid, photos, true);
-        const remaining = Math.max(0, MAX_DAILY_PHOTOS - photos.length);
+        const remaining = hasPremiumAccess() ? Infinity : Math.max(0, FREE_DAILY_PHOTOS - photos.length);
         document.getElementById("today-photo-input").disabled = remaining === 0;
-        document.querySelector(".photo-add-button").textContent = remaining ? `\uFF0B Bilder hinzuf\xFCgen (${remaining} frei)` : "Tageslimit erreicht";
+        document.querySelector(".photo-add-button").textContent = remaining === Infinity ? "\uFF0B Bilder aus Galerie hinzuf\xFCgen" : remaining ? `\uFF0B Bilder aus Galerie hinzuf\xFCgen (${remaining} frei)` : "Tageslimit erreicht";
+        document.getElementById("photo-limit-copy").textContent = remaining === Infinity ? `${photos.length} Bilder gespeichert \xB7 Premium ohne Tageslimit` : `Optional \xB7 bis zu ${FREE_DAILY_PHOTOS} Bilder pro Tag kostenlos, nur auf diesem Ger\xE4t`;
       } catch (error) {
         console.error("Tagesbilder konnten nicht angezeigt werden.", error);
         showToast(error.message || "Tagesbilder konnten nicht angezeigt werden.");
@@ -22812,9 +22853,10 @@ ${suffix}`;
       }
       try {
         const existing = await getPhotosForDate(localDate());
-        const selection = [...files].slice(0, Math.max(0, MAX_DAILY_PHOTOS - existing.length));
+        const remaining = hasPremiumAccess() ? Infinity : Math.max(0, FREE_DAILY_PHOTOS - existing.length);
+        const selection = [...files].slice(0, remaining);
         if (!selection.length) {
-          showToast("F\xFCr heute sind bereits f\xFCnf Bilder gespeichert.");
+          showToast("Das kostenlose Tageslimit von drei Bildern ist erreicht. Mit Premium kannst du unbegrenzt Bilder hinzuf\xFCgen.");
           return;
         }
         const records = [];
@@ -22832,7 +22874,11 @@ ${suffix}`;
         await writePhotos(records);
         await renderTodayPhotos();
         await renderCalendar();
-        showToast(`${records.length} ${records.length === 1 ? "Bild" : "Bilder"} gespeichert`);
+        if (files.length > selection.length) {
+          showToast(`Kostenlos sind drei Bilder pro Tag m\xF6glich. ${records.length} ${records.length === 1 ? "Bild wurde" : "Bilder wurden"} hinzugef\xFCgt.`);
+        } else {
+          showToast(`${records.length} ${records.length === 1 ? "Bild" : "Bilder"} gespeichert`);
+        }
       } catch (error) {
         console.error("Tagesbilder konnten nicht gespeichert werden.", error);
         showToast(error.message || "Bilder konnten nicht gespeichert werden.");
@@ -23321,6 +23367,17 @@ ${suffix}`;
     function hasPremiumAccess() {
       return billingState.entitlement?.active === true;
     }
+    function isUnder14AgeRange(ageRange) {
+      return ["6-10", "11-13", "11-17", "under-18"].includes(ageRange);
+    }
+    function isUnder14Profile() {
+      return isUnder14AgeRange(profile?.ageRange);
+    }
+    function accountAgeConsentText() {
+      if (isUnder14Profile()) return "Ich bin mindestens 18 Jahre alt und richte das Konto als erziehungsberechtigte Person ein.";
+      if (profile?.ageRange === "14-17") return "Ich bin mindestens 14 Jahre alt.";
+      return "Ich bin mindestens 18 Jahre alt.";
+    }
     function setPremiumMessage(message, isError = false) {
       billingState.message = message;
       billingState.error = isError ? message : "";
@@ -23331,14 +23388,29 @@ ${suffix}`;
       const isAnonymous = user?.is_anonymous === true;
       const configured = Boolean(billingClient);
       const active = hasPremiumAccess();
+      const under14 = isUnder14Profile();
+      const hasAdultAccount = Boolean(user && !isAnonymous);
       const adultConfirmed = document.getElementById("premium-guardian-confirm").checked;
-      const accountAdultConfirmed = document.getElementById("premium-adult-confirm").checked;
-      document.getElementById("premium-auth-view").hidden = !configured || Boolean(user);
-      document.getElementById("premium-guardian-view").hidden = !configured || !user || isAnonymous;
-      document.getElementById("premium-child-view").hidden = !configured || Boolean(user && !isAnonymous);
+      document.getElementById("premium-auth-view").hidden = !configured || Boolean(user) || under14;
+      document.getElementById("premium-guardian-view").hidden = !configured || !hasAdultAccount;
+      document.getElementById("premium-child-view").hidden = !configured || !under14 && !isAnonymous || hasAdultAccount;
+      document.getElementById("premium-offer").hidden = !configured || !user || isAnonymous;
+      document.getElementById("premium-privacy").hidden = configured && !user && !isAnonymous;
+      document.getElementById("premium-status").hidden = configured && !user && !isAnonymous && !billingState.error;
+      document.getElementById("premium-acquire-section").hidden = active;
       document.getElementById("premium-otp-row").hidden = !configured || !billingState.otpEmail || Boolean(user);
       document.getElementById("premium-otp-email").textContent = billingState.otpEmail ? `Der Code wurde an ${billingState.otpEmail} gesendet.` : "";
       document.getElementById("premium-account-email").textContent = user && !isAnonymous ? `Angemeldet als ${user.email || "Erwachsenenkonto"}` : "Dieses Ger\xE4t ist f\xFCr ein Kinderprofil angemeldet.";
+      document.getElementById("premium-child-connected").hidden = !(active && billingState.entitlement?.role === "child");
+      document.getElementById("premium-child-code-form").hidden = active && billingState.entitlement?.role === "child";
+      document.getElementById("premium-connect-parent").hidden = hasAdultAccount;
+      document.getElementById("premium-connect-parent").disabled = !configured || billingState.loading;
+      document.getElementById("premium-email-label").textContent = under14 ? "E-Mail-Adresse des Elternteils" : "E-Mail-Adresse";
+      document.querySelector("#premium-adult-confirm + span").textContent = under14 ? "Ich bin mindestens 18 Jahre alt und richte das Konto als erziehungsberechtigte Person ein." : profile?.ageRange === "14-17" ? "Ich bin mindestens 14 Jahre alt." : "Ich bin mindestens 18 Jahre alt.";
+      document.querySelector("#premium-purchase-confirm + span").textContent = under14 ? "Ich bin eine erziehungsberechtigte Person und stimme diesem Kauf zu." : profile?.ageRange === "14-17" ? "Meine erziehungsberechtigte Person stimmt diesem Kauf zu." : "Ich bin mindestens 18 Jahre alt und stimme diesem Kauf zu.";
+      document.getElementById("premium-store-account-note").textContent = user && !isAnonymous ? `Angemeldet als ${user.email || "Konto"}. Die R\xFCckblicke bleiben auf deinem Ger\xE4t.` : "Vor dem Kauf wird eine E-Mail-Adresse mit deinem Konto verkn\xFCpft.";
+      document.getElementById("premium-switch-auth-mode").textContent = premiumAuthMode === "sign-up" ? "Schon ein Konto? Anmelden" : "Noch kein Konto? Registrieren";
+      document.getElementById("premium-switch-auth-mode").hidden = Boolean(billingState.otpEmail);
       document.getElementById("premium-invite-code").hidden = !billingState.invite;
       document.getElementById("premium-invite-code").textContent = billingState.invite ? `Code ${billingState.invite.code} \xB7 g\xFCltig bis ${new Intl.DateTimeFormat("de-DE", { hour: "2-digit", minute: "2-digit" }).format(new Date(billingState.invite.expiresAt))}` : "";
       const status = document.getElementById("premium-status");
@@ -23364,16 +23436,23 @@ ${suffix}`;
       }
       status.textContent = statusMessage;
       status.dataset.premiumError = String(Boolean(billingState.error));
-      document.getElementById("premium-sign-in").disabled = !configured || billingState.loading || !accountAdultConfirmed;
-      document.getElementById("premium-send-link").disabled = !configured || billingState.loading || !accountAdultConfirmed;
+      document.getElementById("premium-sign-in").hidden = premiumAuthMode !== "sign-in";
+      document.getElementById("premium-send-link").hidden = premiumAuthMode !== "sign-up";
+      document.getElementById("premium-sign-in").disabled = !configured || billingState.loading || !document.getElementById("premium-email").checkValidity() || !document.getElementById("premium-adult-confirm").checked;
+      document.getElementById("premium-send-link").disabled = !configured || billingState.loading || !document.getElementById("premium-email").checkValidity() || !document.getElementById("premium-adult-confirm").checked;
       document.getElementById("premium-verify-otp").disabled = !configured || billingState.loading || !billingState.otpEmail;
-      document.getElementById("premium-buy-monthly").disabled = !configured || billingState.loading || !user || isAnonymous || active || !adultConfirmed;
-      document.getElementById("premium-buy-yearly").disabled = !configured || billingState.loading || !user || isAnonymous || active || !adultConfirmed;
+      document.getElementById("premium-auth-status").textContent = billingState.loading ? "Bitte einen Moment \u2026" : billingState.error || billingState.message;
+      document.getElementById("premium-auth-status").dataset.premiumError = String(Boolean(billingState.error));
+      document.getElementById("premium-view-offer").hidden = active;
+      document.getElementById("premium-view-offer").disabled = !configured || billingState.loading || active;
+      document.getElementById("premium-purchase-confirm-button").textContent = user && !isAnonymous ? "Weiter zum sicheren Bezahlvorgang" : "Konto erstellen oder anmelden";
+      document.getElementById("premium-purchase-confirm-button").disabled = billingState.loading || Boolean(user && !isAnonymous) && !document.getElementById("premium-purchase-confirm").checked;
       document.getElementById("premium-manage").disabled = !configured || billingState.loading || !user || isAnonymous || !billingState.entitlement?.canManage;
       document.getElementById("premium-child-invite").disabled = !configured || billingState.loading || !active || billingState.entitlement?.role !== "guardian" || !adultConfirmed;
       document.getElementById("premium-sign-out").disabled = billingState.loading;
       document.getElementById("premium-delete-account").disabled = billingState.loading;
-      document.getElementById("premium-claim-child").disabled = !configured || billingState.loading || Boolean(user && !isAnonymous) || !document.getElementById("premium-child-confirm").checked || document.getElementById("premium-child-code").value.trim().length !== 10;
+      document.getElementById("premium-claim-child").disabled = !configured || billingState.loading || hasAdultAccount || !document.getElementById("premium-child-confirm").checked || document.getElementById("premium-child-code").value.trim().length !== 10;
+      renderSetupAccountStep();
     }
     function getBillingReturnUrl() {
       const url = new URL(window.location.href);
@@ -23406,6 +23485,7 @@ ${suffix}`;
       } finally {
         billingState.loading = false;
         renderPremiumSettings();
+        renderTodayPhotos();
         if (document.getElementById("view-trends").classList.contains("active")) renderTrends();
       }
     }
@@ -23431,8 +23511,14 @@ ${suffix}`;
     }
     function startPremiumCheckout(plan) {
       return runPremiumAction(async () => {
-        if (!document.getElementById("premium-guardian-confirm").checked) {
-          throw new Error("Bitte best\xE4tige, dass du als erwachsene Person handelst.");
+        const user = billingState.session?.user || null;
+        if (!user || user.is_anonymous) {
+          pendingPremiumPlan = plan;
+          openPremiumAuth("sign-in");
+          return;
+        }
+        if (!document.getElementById("premium-purchase-confirm").checked) {
+          throw new Error("Bitte best\xE4tige die erforderliche Alters- oder Zustimmungserkl\xE4rung.");
         }
         const result = await invokeBillingFunction(billingClient, "create-checkout", {
           plan,
@@ -23441,6 +23527,40 @@ ${suffix}`;
         });
         window.location.assign(validateStripeUrl(result.url));
       });
+    }
+    function openPremiumPurchaseDialog() {
+      if (!billingClient) {
+        setPremiumMessage("Premium-Zahlungen sind noch nicht eingerichtet.", true);
+        navigate("settings");
+        document.getElementById("premium-settings").scrollIntoView({ behavior: "smooth", block: "start" });
+        return;
+      }
+      if (hasPremiumAccess()) {
+        setPremiumMessage("Premium ist f\xFCr dieses Konto bereits aktiv.");
+        navigate("settings");
+        return;
+      }
+      const dialog = document.getElementById("premium-purchase-dialog");
+      document.getElementById("premium-purchase-confirm").checked = false;
+      document.getElementById("premium-purchase-status").textContent = "";
+      document.getElementById("premium-purchase-confirm-button").disabled = false;
+      renderPremiumSettings();
+      if (!dialog.open) dialog.showModal();
+    }
+    function openPremiumAuth(mode) {
+      premiumAuthMode = mode;
+      billingState.otpEmail = "";
+      billingState.message = "";
+      billingState.error = "";
+      document.getElementById("premium-auth-title").textContent = isUnder14Profile() ? mode === "sign-up" ? "Elternkonto erstellen" : "Elternkonto verbinden" : mode === "sign-up" ? "Konto registrieren" : "Anmelden";
+      document.getElementById("premium-email-label").textContent = isUnder14Profile() ? "E-Mail-Adresse des Elternteils" : "E-Mail-Adresse";
+      document.getElementById("premium-email").value = "";
+      document.getElementById("premium-otp").value = "";
+      document.getElementById("premium-adult-confirm").checked = false;
+      renderPremiumSettings();
+      if (!document.getElementById("premium-auth-dialog").open) {
+        document.getElementById("premium-auth-dialog").showModal();
+      }
     }
     async function initializePremium() {
       try {
@@ -23804,6 +23924,71 @@ ${suffix}`;
       if (event.target.closest("[data-setup-next]")) showSetupStep(setupStep + 1);
       if (event.target.closest("[data-setup-back]")) showSetupStep(setupStep - 1);
     });
+    document.getElementById("setup-account-choose-sign-in").addEventListener("click", () => {
+      setupAccountMode = "sign-in";
+      document.getElementById("setup-account-status").textContent = "";
+      renderSetupAccountStep();
+      document.getElementById("setup-account-email").focus();
+    });
+    document.getElementById("setup-account-choose-sign-up").addEventListener("click", () => {
+      setupAccountMode = "sign-up";
+      document.getElementById("setup-account-status").textContent = "";
+      renderSetupAccountStep();
+      document.getElementById("setup-account-email").focus();
+    });
+    document.getElementById("setup-account-change-mode").addEventListener("click", () => {
+      setupAccountMode = "";
+      renderSetupAccountStep();
+    });
+    document.getElementById("profile-age").addEventListener("change", renderSetupAccountStep);
+    document.getElementById("setup-account-adult-confirm").addEventListener("change", renderSetupAccountStep);
+    ["setup-account-email", "setup-account-otp"].forEach((id) => {
+      document.getElementById(id).addEventListener("keydown", (event) => {
+        if (event.key === "Enter") event.preventDefault();
+      });
+    });
+    document.getElementById("setup-account-sign-in").addEventListener("click", () => runPremiumAction(async () => {
+      const emailInput = document.getElementById("setup-account-email");
+      const email = emailInput.value.trim();
+      if (!emailInput.checkValidity() || !email || !document.getElementById("setup-account-adult-confirm").checked) {
+        throw new Error("Gib eine g\xFCltige E-Mail-Adresse ein und best\xE4tige die angezeigte Alters- oder Erziehungsberechtigten-Erkl\xE4rung.");
+      }
+      const { error } = await billingClient.auth.signInWithOtp({
+        email,
+        options: { shouldCreateUser: false }
+      });
+      if (error) throw error;
+      billingState.otpEmail = email;
+      billingState.message = "Der Anmeldecode wurde versendet. Gib ihn hier ein.";
+    }));
+    document.getElementById("setup-account-sign-up").addEventListener("click", () => runPremiumAction(async () => {
+      const emailInput = document.getElementById("setup-account-email");
+      const email = emailInput.value.trim();
+      if (!emailInput.checkValidity() || !email || !document.getElementById("setup-account-adult-confirm").checked) {
+        throw new Error("Gib eine g\xFCltige E-Mail-Adresse ein und best\xE4tige die angezeigte Alters- oder Erziehungsberechtigten-Erkl\xE4rung.");
+      }
+      const { error } = await billingClient.auth.signInWithOtp({
+        email,
+        options: { shouldCreateUser: true }
+      });
+      if (error) throw error;
+      billingState.otpEmail = email;
+      billingState.message = "Der Best\xE4tigungscode wurde versendet. Gib ihn hier ein.";
+    }));
+    document.getElementById("setup-account-verify-otp").addEventListener("click", () => runPremiumAction(async () => {
+      const token = document.getElementById("setup-account-otp").value.trim();
+      if (!billingState.otpEmail || token.length < 6) throw new Error("Gib den vollst\xE4ndigen E-Mail-Code ein.");
+      const { error } = await billingClient.auth.verifyOtp({
+        email: billingState.otpEmail,
+        token,
+        type: "email"
+      });
+      if (error) throw error;
+      await refreshPremiumStatus();
+      billingState.otpEmail = "";
+      billingState.message = "Konto verbunden. Dein Profil wird gespeichert.";
+      document.getElementById("onboarding-form").requestSubmit();
+    }));
     document.getElementById("onboarding-form").addEventListener("input", (event) => {
       if (event.target.name === "name") {
         const name = event.target.value.trim();
@@ -23814,11 +23999,39 @@ ${suffix}`;
     document.getElementById("edit-profile").addEventListener("click", () => startOnboarding(true));
     document.getElementById("premium-auth-form").addEventListener("submit", (event) => {
       event.preventDefault();
-      document.getElementById(billingState.otpEmail ? "premium-verify-otp" : "premium-sign-in").click();
+      const actionId = billingState.otpEmail ? "premium-verify-otp" : premiumAuthMode === "sign-up" ? "premium-send-link" : "premium-sign-in";
+      document.getElementById(actionId).click();
     });
+    document.getElementById("premium-open-sign-in").addEventListener("click", () => openPremiumAuth("sign-in"));
+    document.getElementById("premium-open-sign-up").addEventListener("click", () => openPremiumAuth("sign-up"));
+    document.getElementById("premium-connect-parent").addEventListener("click", () => openPremiumAuth("sign-in"));
+    document.getElementById("premium-switch-auth-mode").addEventListener("click", () => {
+      openPremiumAuth(premiumAuthMode === "sign-up" ? "sign-in" : "sign-up");
+    });
+    document.getElementById("premium-auth-close").addEventListener("click", () => {
+      document.getElementById("premium-auth-dialog").close();
+    });
+    document.getElementById("premium-email").addEventListener("input", renderPremiumSettings);
     document.getElementById("premium-adult-confirm").addEventListener("change", renderPremiumSettings);
     document.getElementById("premium-guardian-confirm").addEventListener("change", renderPremiumSettings);
     document.getElementById("premium-child-confirm").addEventListener("change", renderPremiumSettings);
+    document.getElementById("premium-view-offer").addEventListener("click", openPremiumPurchaseDialog);
+    document.getElementById("premium-purchase-confirm").addEventListener("change", (event) => {
+      const user = billingState.session?.user || null;
+      document.getElementById("premium-purchase-confirm-button").disabled = billingState.loading || Boolean(user && !user.is_anonymous) && !event.currentTarget.checked;
+    });
+    document.getElementById("premium-purchase-close").addEventListener("click", () => {
+      document.getElementById("premium-purchase-dialog").close();
+      pendingPremiumPlan = "";
+    });
+    document.getElementById("premium-purchase-confirm-button").addEventListener("click", () => {
+      const plan = document.querySelector('input[name="premium-plan"]:checked')?.value;
+      if (!["monthly", "yearly"].includes(plan)) {
+        document.getElementById("premium-purchase-status").textContent = "W\xE4hle bitte einen Abrechnungszeitraum.";
+        return;
+      }
+      startPremiumCheckout(plan);
+    });
     document.getElementById("premium-child-code").addEventListener("input", (event) => {
       event.target.value = event.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 10);
       renderPremiumSettings();
@@ -23827,10 +24040,12 @@ ${suffix}`;
       event.target.value = event.target.value.replace(/\D/g, "").slice(0, 8);
     });
     document.getElementById("premium-sign-in").addEventListener("click", () => runPremiumAction(async () => {
-      const email = document.getElementById("premium-email").value.trim();
+      const emailInput = document.getElementById("premium-email");
+      const email = emailInput.value.trim();
       if (!email || !document.getElementById("premium-adult-confirm").checked) {
-        throw new Error("Gib deine E-Mail-Adresse ein und best\xE4tige, dass du vollj\xE4hrig bist.");
+        throw new Error("Gib deine E-Mail-Adresse ein und best\xE4tige die angezeigte Alters- oder Erziehungsberechtigten-Erkl\xE4rung.");
       }
+      if (!emailInput.checkValidity()) throw new Error("Gib eine g\xFCltige E-Mail-Adresse ein.");
       const { error } = await billingClient.auth.signInWithOtp({
         email,
         options: { shouldCreateUser: false }
@@ -23840,10 +24055,12 @@ ${suffix}`;
       billingState.message = "Der Anmeldecode wurde versendet. Gib ihn hier ein.";
     }));
     document.getElementById("premium-send-link").addEventListener("click", () => runPremiumAction(async () => {
-      const email = document.getElementById("premium-email").value.trim();
+      const emailInput = document.getElementById("premium-email");
+      const email = emailInput.value.trim();
       if (!email || !document.getElementById("premium-adult-confirm").checked) {
-        throw new Error("Gib deine E-Mail-Adresse ein und best\xE4tige, dass du vollj\xE4hrig bist.");
+        throw new Error("Gib deine E-Mail-Adresse ein und best\xE4tige die angezeigte Alters- oder Erziehungsberechtigten-Erkl\xE4rung.");
       }
+      if (!emailInput.checkValidity()) throw new Error("Gib eine g\xFCltige E-Mail-Adresse ein.");
       const { error } = await billingClient.auth.signInWithOtp({
         email,
         options: { shouldCreateUser: true }
@@ -23863,10 +24080,15 @@ ${suffix}`;
       if (error) throw error;
       await refreshPremiumStatus();
       billingState.otpEmail = "";
-      billingState.message = "E-Mail best\xE4tigt und angemeldet.";
+      billingState.message = pendingPremiumPlan ? "Konto verbunden. Best\xE4tige jetzt die Kaufzustimmung, um fortzufahren." : "E-Mail best\xE4tigt und angemeldet.";
+      document.getElementById("premium-auth-dialog").close();
+      if (pendingPremiumPlan) {
+        document.querySelector(`input[name="premium-plan"][value="${pendingPremiumPlan}"]`).checked = true;
+        document.getElementById("premium-purchase-confirm").checked = false;
+        document.getElementById("premium-purchase-status").textContent = billingState.message;
+        pendingPremiumPlan = "";
+      }
     }));
-    document.getElementById("premium-buy-monthly").addEventListener("click", () => startPremiumCheckout("monthly"));
-    document.getElementById("premium-buy-yearly").addEventListener("click", () => startPremiumCheckout("yearly"));
     document.getElementById("premium-manage").addEventListener("click", () => runPremiumAction(async () => {
       const result = await invokeBillingFunction(billingClient, "create-portal", { returnUrl: getBillingReturnUrl() });
       window.location.assign(validateStripeUrl(result.url));
@@ -23923,8 +24145,7 @@ ${suffix}`;
     });
     document.addEventListener("click", (event) => {
       if (!event.target.closest("[data-open-premium]")) return;
-      navigate("settings");
-      document.getElementById("premium-settings").scrollIntoView({ behavior: "smooth", block: "start" });
+      openPremiumPurchaseDialog();
     });
     document.getElementById("sidekick-toggle").addEventListener("click", (event) => {
       const message = document.getElementById("mascot-sidekick-message");
