@@ -191,6 +191,16 @@
       <div class="range-switch" id="range-switch" role="group" aria-label="Zeitraum auswählen">
         <button type="button" data-range="week">Woche</button><button type="button" data-range="month" class="selected">Monat</button><button type="button" data-range="year">Jahr</button><button type="button" data-range="all">Alle</button>
       </div>
+      <section class="card premium-lock-card" id="trend-premium-lock" aria-live="polite" hidden>
+        <span class="premium-lock-icon" aria-hidden="true">🔒</span>
+        <div><h2>Langzeitverlauf mit Premium</h2><p>Die letzten drei Monatsverläufe bleiben kostenlos. Ältere Monatsverläufe, Jahres- und Gesamtverlauf sowie Zusammenhangsanalysen sind Premium. Kalender, einzelne Rückblicke und Datenexport bleiben kostenlos und jederzeit erreichbar.</p></div>
+        <button class="button button-primary" type="button" data-open-premium>Premium ansehen</button>
+      </section>
+      <div class="trend-month-nav" id="trend-month-nav" role="group" aria-label="Monatsverlauf auswählen">
+        <button class="icon-button" id="trend-month-older" type="button" aria-label="Älterer Monatsverlauf">‹</button>
+        <strong id="trend-month-label"></strong>
+        <button class="icon-button" id="trend-month-newer" type="button" aria-label="Neuerer Monatsverlauf">›</button>
+      </div>
       <div class="stats-grid" id="trend-stats"></div>
       <div class="score-card" id="trend-score"></div>
       <div class="swipe-hint" aria-hidden="true">Diagramme seitlich wischen <span>←　→</span></div>
@@ -233,7 +243,7 @@
       <div class="section-heading"><div><p class="eyebrow">ALLE EINTRÄGE</p><h2>Deine Tage</h2></div></div>
       <div id="entries-list" class="entries-list"></div>
       <div class="empty-state card" id="entries-empty" hidden><span>✳</span><h2>Noch keine Einträge</h2><p>Dein erster Rückblick ist ein guter Anfang.</p><button class="button button-primary" data-navigate="checkin" type="button">Rückblick starten</button></div>
-      <section class="card insight-slide">
+      <section class="card insight-slide" id="correlation-card">
           <div class="card-heading"><div><h3>Zusammenhänge erkunden</h3><p>Wie hängen deine Einträge mit deinem Wohlbefinden zusammen?</p></div></div>
           <div id="correlations" class="correlations"></div>
           <p class="chart-footnote">Beschreibende Korrelationen zeigen keine Ursache-Wirkung-Beziehung. Bei wenigen Einträgen werden keine Zusammenhänge berechnet.</p>
@@ -253,6 +263,57 @@
     <section class="view" id="view-settings" aria-labelledby="settings-title">
       <div class="page-heading"><div><p class="eyebrow">PERSÖNLICH ANPASSEN</p><h1 id="settings-title">Einstellungen</h1></div></div>
       <div class="mascot-guide card"><span class="mascot-art" data-mascot></span><p><strong>Nori meint:</strong> Dein Kompass gehört dir – passe ihn jederzeit an. 🧭</p></div>
+      <section class="card settings-card premium-card" id="premium-settings">
+        <div class="settings-title"><span class="settings-icon">✨</span><div><h2>DayInStatistics Premium</h2><p>Langzeitverläufe und Zusatzanalysen auf deinen Geräten freischalten.</p></div></div>
+        <div class="premium-offer">
+          <strong>3,50 € / Monat</strong><span>oder</span><strong>35 € / Jahr</strong>
+          <small>Automatisch verlängerndes Abo · Verwaltung und Kündigung jederzeit über den Zahlungsanbieter.</small>
+        </div>
+        <p class="premium-privacy">🔒 Deine Rückblicke, Notizen und Bilder bleiben auf deinem Gerät. Für Kaufstatus und Einladungen werden nur Konto- und Abo-Daten verarbeitet.</p>
+        <p id="premium-status" class="settings-message" role="status" aria-live="polite">Premium-Verbindung wird geprüft …</p>
+        <div id="premium-auth-view" class="premium-section" hidden>
+          <form id="premium-auth-form" class="premium-form">
+            <label class="field-label" for="premium-email">E-Mail des Elternteils oder volljährigen Nutzers</label>
+            <input id="premium-email" class="setup-input" type="email" autocomplete="email" maxlength="254" required>
+            <label class="field-label" for="premium-password">Passwort</label>
+            <input id="premium-password" class="setup-input" type="password" autocomplete="current-password" minlength="8" required>
+            <label class="premium-consent"><input id="premium-adult-confirm" type="checkbox"><span>Ich bin mindestens 18 Jahre alt und kaufe selbst oder als Erziehungsberechtigte:r.</span></label>
+            <div class="premium-actions">
+              <button class="button button-secondary" id="premium-sign-in" type="button">Anmeldecode senden</button>
+              <button class="button button-primary" id="premium-send-link" type="button">Konto erstellen &amp; Code senden</button>
+            </div>
+            <div class="premium-otp-row" id="premium-otp-row" hidden>
+              <p id="premium-otp-email" class="premium-account-email"></p>
+              <label class="field-label" for="premium-otp">E-Mail-Code</label>
+              <input id="premium-otp" class="setup-input premium-code-input" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="8">
+              <button class="button button-secondary" id="premium-verify-otp" type="button">Code bestätigen</button>
+            </div>
+          </form>
+        </div>
+        <div id="premium-guardian-view" class="premium-section" hidden>
+          <p id="premium-account-email" class="premium-account-email"></p>
+          <label class="premium-consent"><input id="premium-guardian-confirm" type="checkbox"><span>Ich bin mindestens 18 Jahre alt und kaufe selbst oder als Erziehungsberechtigte:r. Eine Einladung gilt für ein Kinderprofil.</span></label>
+          <div class="premium-actions">
+            <button class="button button-primary" id="premium-buy-monthly" type="button">Monatsabo starten</button>
+            <button class="button button-primary" id="premium-buy-yearly" type="button">Jahresabo starten</button>
+          </div>
+          <div class="premium-actions">
+            <button class="button button-secondary" id="premium-manage" type="button">Abo verwalten / kündigen</button>
+            <button class="button button-secondary" id="premium-child-invite" type="button">Kinderprofil einladen</button>
+          </div>
+          <p id="premium-invite-code" class="premium-invite-code" hidden></p>
+          <button class="button button-secondary" id="premium-sign-out" type="button">Abmelden</button>
+          <button class="button button-danger" id="premium-delete-account" type="button">Konto und Abo löschen</button>
+        </div>
+        <div id="premium-child-view" class="premium-section">
+          <h3>Kinderprofil freischalten</h3>
+          <p>Ein Elternteil kann ein Premium-Abo verwalten und einen einmaligen Einladungscode erstellen. Geteilte Rückblicke oder Notizen sind für das Elternteil nicht sichtbar.</p>
+          <label class="field-label" for="premium-child-code">Einladungscode</label>
+          <input id="premium-child-code" class="setup-input premium-code-input" type="text" inputmode="text" autocomplete="one-time-code" maxlength="10" aria-describedby="premium-child-consent">
+          <label class="premium-consent" id="premium-child-consent"><input id="premium-child-confirm" type="checkbox"><span>Mein Elternteil oder meine erziehungsberechtigte Person hat mir diesen Code gegeben.</span></label>
+          <button class="button button-secondary" id="premium-claim-child" type="button">Mit Code freischalten</button>
+        </div>
+      </section>
       <section class="card settings-card">
         <div class="settings-title"><span class="settings-icon">🧑‍🚀</span><div><h2>Dein persönliches Profil</h2><p id="profile-summary">Passe Interessen und Schwerpunkte an.</p></div></div>
         <button class="button button-secondary" id="edit-profile" type="button">Profil bearbeiten</button>
@@ -350,6 +411,10 @@
       <p>DayInStatistics ist ein persönliches Werkzeug zur Selbstreflexion. Es bietet keine medizinische oder psychologische Beratung, stellt keine Diagnosen und ist nicht für Notfälle gedacht. Auswertungen und mögliche Zusammenhänge sind beschreibend und erlauben keine Aussagen über Ursachen.</p>
       <h3>Deine Angaben und dein Gerät</h3>
       <p>Deine Antworten, dein Profil und deine Bilder werden lokal auf deinem Gerät gespeichert. Du bist dafür verantwortlich, wichtige Daten regelmäßig zu exportieren. Beim Löschen von App- oder Browserdaten können gespeicherte Inhalte verloren gehen. Ein Export kann persönliche Angaben enthalten; bewahre ihn sicher auf.</p>
+      <h3>Premium, Zahlungen und Familienzugang</h3>
+      <p>Die optionalen Abos kosten 3,50 € pro Monat oder 35 € pro Jahr und verlängern sich automatisch. Preis, Laufzeit und Kündigungsbedingungen werden vor dem Kauf im sicheren Bezahlvorgang angezeigt. Du kannst dein Abo über die Aboverwaltung kündigen; das Löschen der App beendet ein Abo nicht.</p>
+      <p>Für Anmeldung, Premiumstatus und einen Einladungscode werden Kontodaten und technische Gerätekennungen bei unserem Kontodienst verarbeitet. Zahlungsdaten verarbeitet der Zahlungsanbieter. Antworten, Notizen, Profilangaben und Bilder werden nicht an diese Dienste übertragen. Ein Erwachsenenkonto kann ein einzelnes Kinderprofil freischalten; über das Konto- und Zahlungssystem erhält die erziehungsberechtigte Person keinen Zugriff auf Rückblicke des Kindes. Die Inhalte bleiben lokal auf dem jeweiligen Gerät; Personen mit Zugriff auf das Gerät können dessen App-Daten ansehen.</p>
+      <p>Eine Einladung ist zeitlich begrenzt und nur einmal verwendbar. Die Verknüpfung schaltet Premium frei, synchronisiert aber keine Tagebucheinträge zwischen Geräten. Vor dem Verkaufsstart müssen Datenschutzhinweise, Steuerangaben und die jeweils geltenden Verbraucherrechte vollständig eingerichtet sein.</p>
       <h3>Erinnerungen und Verfügbarkeit</h3>
       <p>Erinnerungen sind optional. Ihre Zustellung hängt unter anderem von Geräteberechtigungen, Energiespareinstellungen und der Plattform ab. Die App garantiert weder eine bestimmte Zustellzeit noch eine unterbrechungsfreie Verfügbarkeit.</p>
       <h3>Deine Nutzung</h3>
