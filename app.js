@@ -21919,6 +21919,10 @@ ${suffix}`;
     let reflectionDate = "";
     let lastMascotMood = "";
     let billingClient = null;
+    let accountSyncPromise = null;
+    let accountSyncRequested = false;
+    let syncPromptDismissedFor = "";
+    const accountSyncState = { working: false, message: "", error: "" };
     const billingState = {
       session: null,
       entitlement: null,
@@ -22200,7 +22204,7 @@ ${suffix}`;
         "Ich begleite dich durch die Einrichtung. Teile nur, womit du dich wohlf\xFChlst \u2013 du kannst alles sp\xE4ter \xE4ndern.",
         "Erz\xE4hl mir ein bisschen von den Dingen und Menschen, die deinen Alltag ausmachen. \u{1F33F}",
         "W\xE4hle, was dich interessiert. Ich passe kleine Fragen und Einblicke daran an. Es gibt kein richtig oder falsch. \u2728",
-        "Ein Konto ist freiwillig. Deine R\xFCckblicke bleiben auf deinem Ger\xE4t. \u{1F512}"
+        "Ein Konto ist freiwillig. Deine Daten bleiben lokal, bis du die optionale Synchronisierung aktivierst. \u{1F512}"
       ][setupStep - 1];
       renderSetupAccountStep();
     }
@@ -22220,10 +22224,10 @@ ${suffix}`;
       document.getElementById("setup-account-otp-email").textContent = billingState.otpEmail ? `Der Code wurde an ${billingState.otpEmail} gesendet.` : "";
       const ageRange = document.getElementById("profile-age").value;
       const under14 = isUnder14AgeRange(ageRange);
-      document.getElementById("setup-account-choice-note").textContent = under14 ? "Unter 14 muss eine erziehungsberechtigte Person das Konto einrichten. Du kannst diesen Schritt auch \xFCberspringen." : "Ab 14 kannst du ein eigenes Konto erstellen. Deine R\xFCckblicke bleiben auf diesem Ger\xE4t.";
+      document.getElementById("setup-account-choice-note").textContent = under14 ? "Unter 14 muss eine erziehungsberechtigte Person das Konto einrichten. Du kannst diesen Schritt auch \xFCberspringen." : "Ab 14 kannst du ein eigenes Konto erstellen. Deine Daten bleiben lokal, bis du die optionale Synchronisierung aktivierst.";
       document.getElementById("setup-account-email-label").textContent = under14 ? "E-Mail-Adresse des Elternteils" : "E-Mail-Adresse";
       document.getElementById("setup-account-age-copy").textContent = under14 ? "Ich bin mindestens 18 Jahre alt und richte das Konto als erziehungsberechtigte Person ein." : ["14-17"].includes(ageRange) ? "Ich bin mindestens 14 Jahre alt." : "Ich bin mindestens 18 Jahre alt.";
-      document.getElementById("setup-account-age-hint").textContent = under14 ? "Unter 14 muss eine erziehungsberechtigte Person das Konto einrichten. Du kannst diesen Schritt auch \xFCberspringen." : "Ab 14 kannst du ein eigenes Konto erstellen. Deine R\xFCckblicke bleiben auf diesem Ger\xE4t.";
+      document.getElementById("setup-account-age-hint").textContent = under14 ? "Unter 14 muss eine erziehungsberechtigte Person das Konto einrichten. Du kannst diesen Schritt auch \xFCberspringen." : "Ab 14 kannst du ein eigenes Konto erstellen. Deine Daten bleiben lokal, bis du die optionale Synchronisierung aktivierst.";
       const adultConfirmed = document.getElementById("setup-account-adult-confirm").checked;
       document.getElementById("setup-account-sign-in").disabled = !configured || billingState.loading || !adultConfirmed;
       document.getElementById("setup-account-sign-up").disabled = !configured || billingState.loading || !adultConfirmed;
@@ -22280,16 +22284,22 @@ ${suffix}`;
       };
       const updatedSettings = { ...settings, profile: nextProfile };
       updatedSettings.time = nextProfile.preferredTime;
+      if (!nextProfile.ageRange || isUnder14AgeRange(nextProfile.ageRange)) {
+        updatedSettings.accountSyncEnabled = false;
+      }
       try {
         localStorage.setItem(SETTINGS_KEY, JSON.stringify(updatedSettings));
         settings = updatedSettings;
         profile = nextProfile;
+        settings.profileUpdatedAt = (/* @__PURE__ */ new Date()).toISOString();
+        saveSettings();
         renderPremiumSettings();
         document.body.classList.remove("onboarding-active");
         renderOverview();
         if (editingProfile) navigate("settings");
         else navigate("overview");
         showToast(editingProfile ? "Profil aktualisiert \u2728" : "Dein Kompass ist startklar \u2728");
+        handleAccountSyncSession();
       } catch (error) {
         console.error("Profil konnte nicht gespeichert werden.", error);
         showToast("Profil konnte nicht gespeichert werden. Pr\xFCfe den verf\xFCgbaren Ger\xE4tespeicher.");
@@ -22312,6 +22322,7 @@ ${suffix}`;
     }
     function saveEntries() {
       localStorage.setItem(STORAGE_KEY2, JSON.stringify(entries));
+      queueAccountSync();
     }
     function saveSettings() {
       localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
@@ -23411,7 +23422,7 @@ ${suffix}`;
       document.getElementById("premium-email-label").textContent = under14 ? "E-Mail-Adresse des Elternteils" : "E-Mail-Adresse";
       document.querySelector("#premium-adult-confirm + span").textContent = under14 ? "Ich bin mindestens 18 Jahre alt und richte das Konto als erziehungsberechtigte Person ein." : profile?.ageRange === "14-17" ? "Ich bin mindestens 14 Jahre alt." : "Ich bin mindestens 18 Jahre alt.";
       document.querySelector("#premium-purchase-confirm + span").textContent = under14 ? "Ich bin eine erziehungsberechtigte Person und stimme diesem Kauf zu." : profile?.ageRange === "14-17" ? "Meine erziehungsberechtigte Person stimmt diesem Kauf zu." : "Ich bin mindestens 18 Jahre alt und stimme diesem Kauf zu.";
-      document.getElementById("premium-store-account-note").textContent = user && !isAnonymous ? `Angemeldet als ${user.email || "Konto"}. Die R\xFCckblicke bleiben auf deinem Ger\xE4t.` : "Vor dem Kauf wird eine E-Mail-Adresse mit deinem Konto verkn\xFCpft.";
+      document.getElementById("premium-store-account-note").textContent = user && !isAnonymous ? `Angemeldet als ${user.email || "Konto"}. Du kannst die Synchronisierung in den Kontoeinstellungen optional aktivieren.` : "Vor dem Kauf wird eine E-Mail-Adresse mit deinem Konto verkn\xFCpft.";
       document.getElementById("premium-switch-auth-mode").textContent = premiumAuthMode === "sign-up" ? "Schon ein Konto? Anmelden" : "Noch kein Konto? Registrieren";
       document.getElementById("premium-switch-auth-mode").hidden = Boolean(billingState.otpEmail);
       document.getElementById("premium-invite-code").hidden = !billingState.invite;
@@ -23452,13 +23463,205 @@ ${suffix}`;
       document.getElementById("premium-purchase-confirm-button").disabled = billingState.loading || !configured || Boolean(user && !isAnonymous) && !document.getElementById("premium-purchase-confirm").checked;
       if (!configured && document.getElementById("premium-purchase-dialog").open) {
         document.getElementById("premium-purchase-status").textContent = billingState.error || "Premium-Zahlungen sind derzeit noch nicht eingerichtet. Ein Kauf ist noch nicht m\xF6glich.";
+      } else if (document.getElementById("premium-purchase-dialog").open) {
+        document.getElementById("premium-purchase-status").textContent = billingState.loading ? "Die sichere Kaufverbindung wird gestartet \u2026" : billingState.error || billingState.message;
       }
       document.getElementById("premium-manage").disabled = !configured || billingState.loading || !user || isAnonymous || !billingState.entitlement?.canManage;
       document.getElementById("premium-child-invite").disabled = !configured || billingState.loading || !active || billingState.entitlement?.role !== "guardian" || !adultConfirmed;
       document.getElementById("premium-sign-out").disabled = billingState.loading;
       document.getElementById("premium-delete-account").disabled = billingState.loading;
       document.getElementById("premium-claim-child").disabled = !configured || billingState.loading || hasAdultAccount || !document.getElementById("premium-child-confirm").checked || document.getElementById("premium-child-code").value.trim().length !== 10;
+      renderAccountSyncSettings(user, hasAdultAccount);
       renderSetupAccountStep();
+    }
+    function accountSyncEligible() {
+      return Boolean(profile?.complete && ["14-17", "18-24", "25-34", "35-44", "45-54", "55-64", "65-plus"].includes(profile.ageRange));
+    }
+    function accountSyncAuthorized(user) {
+      return Boolean(user && !user.is_anonymous && settings.accountSyncEnabled === true && settings.accountSyncUserId === user.id && accountSyncEligible());
+    }
+    function rememberAccountSyncDismissal(userId) {
+      if (!userId) return;
+      const dismissed = Array.isArray(settings.accountSyncDismissedUserIds) ? settings.accountSyncDismissedUserIds : [];
+      settings = {
+        ...settings,
+        accountSyncDismissedUserIds: [.../* @__PURE__ */ new Set([...dismissed, userId])]
+      };
+      saveSettings();
+    }
+    function forgetAccountSyncDismissal(userId) {
+      const dismissed = Array.isArray(settings.accountSyncDismissedUserIds) ? settings.accountSyncDismissedUserIds : [];
+      settings = {
+        ...settings,
+        accountSyncDismissedUserIds: dismissed.filter((id) => id !== userId)
+      };
+    }
+    function renderAccountSyncSettings(user, hasAdultAccount) {
+      const section = document.getElementById("account-sync-section");
+      const toggle = document.getElementById("account-sync-enabled");
+      const retry = document.getElementById("account-sync-now");
+      const status = document.getElementById("account-sync-status");
+      if (!section || !toggle || !retry || !status) return;
+      section.hidden = !billingClient || !hasAdultAccount;
+      const eligible = accountSyncEligible();
+      const authorized = accountSyncAuthorized(user);
+      toggle.checked = authorized;
+      toggle.disabled = !eligible || accountSyncState.working;
+      retry.disabled = !authorized || accountSyncState.working;
+      if (accountSyncState.working) {
+        status.textContent = "Daten werden sicher abgeglichen \u2026";
+      } else if (accountSyncState.error) {
+        status.textContent = `Synchronisierung fehlgeschlagen: ${accountSyncState.error}`;
+      } else if (!eligible) {
+        status.textContent = isUnder14Profile() ? "F\xFCr Profile unter 14 werden keine Daten synchronisiert." : profile?.complete ? "Gib eine Altersgruppe ab 14 Jahren an, damit die Synchronisierung verf\xFCgbar ist." : "Schlie\xDFe dein Profil ab, bevor du die Synchronisierung aktivierst.";
+      } else if (authorized) {
+        status.textContent = accountSyncState.message || "Aktiv f\xFCr dieses Konto. R\xFCckblicke und Profil werden beim \xD6ffnen, bei \xC4nderungen und nach einer Offline-Phase abgeglichen.";
+      } else {
+        status.textContent = accountSyncState.message || "Aus. Es werden keine Daten \xFCbertragen.";
+      }
+    }
+    function syncableProfile(value) {
+      if (!value || typeof value !== "object" || value.complete !== true) return null;
+      const keys = ["complete", "name", "ageRange", "relationshipStatus", "situation", "context", "interests", "focus", "intention"];
+      return Object.fromEntries(keys.filter((key) => Object.prototype.hasOwnProperty.call(value, key)).map((key) => [key, value[key]]));
+    }
+    function timestampValue(value) {
+      const parsed = Date.parse(value || "");
+      return Number.isFinite(parsed) ? parsed : 0;
+    }
+    function isCurrentSyncUser(userId) {
+      return billingState.session?.user?.id === userId && billingState.session.user.is_anonymous !== true;
+    }
+    async function syncAccountData() {
+      const user = billingState.session?.user;
+      if (!accountSyncAuthorized(user)) return;
+      const userId = user.id;
+      accountSyncState.working = true;
+      accountSyncState.error = "";
+      renderPremiumSettings();
+      try {
+        const [remoteEntriesResult, remoteProfileResult] = await Promise.all([
+          billingClient.from("personal_daily_entries").select("entry_date,entry,updated_at").eq("user_id", userId),
+          billingClient.from("personal_profiles").select("profile,updated_at").eq("user_id", userId).maybeSingle()
+        ]);
+        if (remoteEntriesResult.error) throw remoteEntriesResult.error;
+        if (remoteProfileResult.error) throw remoteProfileResult.error;
+        if (!isCurrentSyncUser(userId) || !accountSyncAuthorized(user)) return;
+        const mergedByDate = /* @__PURE__ */ new Map();
+        loadEntries().forEach((entry) => {
+          const updatedAt = entry.updatedAt || (/* @__PURE__ */ new Date()).toISOString();
+          mergedByDate.set(entry.date, { ...entry, updatedAt });
+        });
+        for (const row of remoteEntriesResult.data || []) {
+          if (!row.entry || typeof row.entry !== "object" || Array.isArray(row.entry) || !isValidDate(row.entry_date) || row.entry.date !== row.entry_date || !row.entry.answers || typeof row.entry.answers !== "object" || Array.isArray(row.entry.answers)) {
+            throw new Error("Ein synchronisierter R\xFCckblick hat ein ung\xFCltiges Format. Die lokalen Daten wurden nicht \xFCberschrieben.");
+          }
+          const remoteEntry = {
+            ...row.entry,
+            updatedAt: timestampValue(row.entry.updatedAt) ? row.entry.updatedAt : row.updated_at
+          };
+          const localEntry = mergedByDate.get(row.entry_date);
+          if (!localEntry || timestampValue(remoteEntry.updatedAt) > timestampValue(localEntry.updatedAt)) {
+            mergedByDate.set(row.entry_date, remoteEntry);
+          }
+        }
+        const localProfile = syncableProfile(profile);
+        const remoteProfileRow = remoteProfileResult.data;
+        const remoteProfile = syncableProfile(remoteProfileRow?.profile);
+        if (remoteProfile && !["14-17", "18-24", "25-34", "35-44", "45-54", "55-64", "65-plus"].includes(remoteProfile.ageRange)) {
+          throw new Error("Das verkn\xFCpfte Cloud-Profil hat keine freigegebene Altersgruppe ab 14 Jahren. Zum Schutz werden keine Daten abgeglichen.");
+        }
+        const localProfileTime = settings.profileUpdatedAt;
+        const remoteProfileTime = remoteProfileRow?.updated_at;
+        const useRemoteProfile = Boolean(remoteProfile && (!localProfile || timestampValue(remoteProfileTime) > timestampValue(localProfileTime)));
+        const mergedProfile = useRemoteProfile ? remoteProfile : localProfile;
+        const mergedProfileTime = useRemoteProfile ? remoteProfileTime : localProfileTime;
+        entries = [...mergedByDate.values()].sort((a, b) => a.date.localeCompare(b.date));
+        localStorage.setItem(STORAGE_KEY2, JSON.stringify(entries));
+        if (mergedProfile) {
+          profile = { ...mergedProfile, ...profile?.preferredTime ? { preferredTime: profile.preferredTime } : {} };
+          settings = { ...settings, profile, profileUpdatedAt: mergedProfileTime || (/* @__PURE__ */ new Date()).toISOString() };
+          saveSettings();
+        }
+        if (!isCurrentSyncUser(userId) || !accountSyncAuthorized(user)) return;
+        const entryRows = entries.map((entry) => ({
+          user_id: userId,
+          entry_date: entry.date,
+          entry,
+          updated_at: timestampValue(entry.updatedAt) ? entry.updatedAt : (/* @__PURE__ */ new Date()).toISOString()
+        }));
+        for (let index = 0; index < entryRows.length; index += 500) {
+          if (!isCurrentSyncUser(userId) || !accountSyncAuthorized(user)) return;
+          const { error } = await billingClient.from("personal_daily_entries").upsert(entryRows.slice(index, index + 500), { onConflict: "user_id,entry_date" });
+          if (error) throw error;
+        }
+        if (mergedProfile) {
+          if (!isCurrentSyncUser(userId) || !accountSyncAuthorized(user)) return;
+          const { error } = await billingClient.from("personal_profiles").upsert({
+            user_id: userId,
+            profile: syncableProfile(mergedProfile),
+            updated_at: mergedProfileTime || (/* @__PURE__ */ new Date()).toISOString()
+          }, { onConflict: "user_id" });
+          if (error) throw error;
+        }
+        if (!isCurrentSyncUser(userId)) return;
+        accountSyncState.message = `Zuletzt synchronisiert: ${new Intl.DateTimeFormat("de-DE", {
+          dateStyle: "short",
+          timeStyle: "short"
+        }).format(/* @__PURE__ */ new Date())}.`;
+        renderOverview();
+        renderEntries();
+        renderProfileSummary();
+        if (document.getElementById("view-trends").classList.contains("active")) renderTrends();
+      } finally {
+        accountSyncState.working = false;
+        renderPremiumSettings();
+      }
+    }
+    function queueAccountSync() {
+      accountSyncRequested = true;
+      if (accountSyncPromise) return accountSyncPromise;
+      accountSyncPromise = (async () => {
+        while (accountSyncRequested) {
+          accountSyncRequested = false;
+          try {
+            await syncAccountData();
+          } catch (error) {
+            accountSyncRequested = false;
+            console.error("Kontodaten konnten nicht synchronisiert werden.", error);
+            accountSyncState.error = error instanceof Error ? error.message : "Bitte pr\xFCfe deine Verbindung und versuche es erneut.";
+            accountSyncState.message = "";
+            showToast("Synchronisierung fehlgeschlagen. Details findest du in den Kontoeinstellungen.");
+            renderPremiumSettings();
+          }
+        }
+      })().finally(() => {
+        accountSyncPromise = null;
+      });
+      return accountSyncPromise;
+    }
+    function handleAccountSyncSession() {
+      const user = billingState.session?.user;
+      const consentDialog = document.getElementById("account-sync-consent-dialog");
+      if (!user || user.is_anonymous) {
+        syncPromptDismissedFor = "";
+        if (consentDialog.open) consentDialog.close();
+        return;
+      }
+      if (!accountSyncEligible()) {
+        if (settings.accountSyncEnabled) {
+          settings = { ...settings, accountSyncEnabled: false };
+          saveSettings();
+        }
+        renderPremiumSettings();
+        return;
+      }
+      if (accountSyncAuthorized(user)) {
+        if (!consentDialog.open) queueAccountSync();
+        return;
+      }
+      if (Array.isArray(settings.accountSyncDismissedUserIds) && settings.accountSyncDismissedUserIds.includes(user.id)) return;
+      if (syncPromptDismissedFor !== user.id && !consentDialog.open) consentDialog.showModal();
     }
     function getBillingReturnUrl() {
       const url = new URL(window.location.href);
@@ -23542,6 +23745,8 @@ ${suffix}`;
         return;
       }
       const dialog = document.getElementById("premium-purchase-dialog");
+      billingState.error = "";
+      billingState.message = "";
       document.getElementById("premium-purchase-confirm").checked = false;
       document.getElementById("premium-purchase-status").textContent = billingClient ? "" : billingState.error || "Premium-Zahlungen sind derzeit noch nicht eingerichtet. Ein Kauf ist noch nicht m\xF6glich.";
       document.getElementById("premium-purchase-confirm-button").disabled = false;
@@ -23578,10 +23783,16 @@ ${suffix}`;
           billingState.entitlement = null;
           billingState.error = "";
           billingState.message = "";
+          accountSyncState.error = "";
+          accountSyncState.message = "";
           renderPremiumSettings();
-          if (!billingState.loading) queueMicrotask(() => refreshPremiumStatus());
+          queueMicrotask(() => {
+            handleAccountSyncSession();
+            if (!billingState.loading) refreshPremiumStatus();
+          });
         });
         await refreshPremiumStatus();
+        handleAccountSyncSession();
         const checkout = new URLSearchParams(window.location.search).get("checkout");
         if (checkout === "success") {
           billingState.message = hasPremiumAccess() ? "Zahlung best\xE4tigt. Premium ist aktiv." : "Zahlung abgeschlossen. Die Freischaltung wird noch best\xE4tigt; \xF6ffne die Einstellungen gleich noch einmal.";
@@ -23887,7 +24098,13 @@ ${suffix}`;
             intention: typeof importedProfile.intention === "string" ? importedProfile.intention : "",
             preferredTime: /^\d{2}:\d{2}$/.test(importedProfile.preferredTime) ? importedProfile.preferredTime : settings.time
           };
-          settings = { ...settings, time: profile.preferredTime, profile };
+          settings = {
+            ...settings,
+            time: profile.preferredTime,
+            profile,
+            profileUpdatedAt: (/* @__PURE__ */ new Date()).toISOString(),
+            ...!profile.ageRange || isUnder14AgeRange(profile.ageRange) ? { accountSyncEnabled: false } : {}
+          };
           saveSettings();
         }
         const byDate = new Map(entries.map((entry) => [entry.date, entry]));
@@ -23898,6 +24115,7 @@ ${suffix}`;
         renderEntries();
         renderOverview();
         renderProfileSummary();
+        handleAccountSyncSession();
         showToast(`${validEntries.length} Eintr\xE4ge und ${photoRecords.length} Bilder importiert`);
       } catch (error) {
         console.error("Import fehlgeschlagen.", error);
@@ -24011,6 +24229,54 @@ ${suffix}`;
     });
     document.getElementById("premium-auth-close").addEventListener("click", () => {
       document.getElementById("premium-auth-dialog").close();
+    });
+    document.getElementById("account-sync-enabled").addEventListener("change", (event) => {
+      const user = billingState.session?.user;
+      if (!user || user.is_anonymous || !accountSyncEligible()) {
+        event.currentTarget.checked = false;
+        renderPremiumSettings();
+        return;
+      }
+      if (event.currentTarget.checked) {
+        settings = { ...settings, accountSyncEnabled: true, accountSyncUserId: user.id };
+        forgetAccountSyncDismissal(user.id);
+        accountSyncState.error = "";
+        accountSyncState.message = "";
+        saveSettings();
+        queueAccountSync();
+      } else {
+        settings = { ...settings, accountSyncEnabled: false };
+        rememberAccountSyncDismissal(user.id);
+        accountSyncState.error = "";
+        accountSyncState.message = "Ausgeschaltet. Bereits \xFCbertragene Daten bleiben im Konto gespeichert.";
+      }
+      saveSettings();
+      renderPremiumSettings();
+    });
+    document.getElementById("account-sync-now").addEventListener("click", () => {
+      accountSyncState.error = "";
+      accountSyncState.message = "";
+      queueAccountSync();
+    });
+    document.getElementById("account-sync-enable").addEventListener("click", () => {
+      const user = billingState.session?.user;
+      if (!user || user.is_anonymous || !accountSyncEligible()) return;
+      settings = { ...settings, accountSyncEnabled: true, accountSyncUserId: user.id };
+      forgetAccountSyncDismissal(user.id);
+      accountSyncState.error = "";
+      accountSyncState.message = "";
+      saveSettings();
+      document.getElementById("account-sync-consent-dialog").close();
+      queueAccountSync();
+    });
+    document.getElementById("account-sync-later").addEventListener("click", () => {
+      syncPromptDismissedFor = billingState.session?.user?.id || "";
+      rememberAccountSyncDismissal(syncPromptDismissedFor);
+      document.getElementById("account-sync-consent-dialog").close();
+    });
+    document.getElementById("account-sync-consent-dialog").addEventListener("cancel", () => {
+      syncPromptDismissedFor = billingState.session?.user?.id || "";
+      rememberAccountSyncDismissal(syncPromptDismissedFor);
     });
     document.getElementById("premium-email").addEventListener("input", renderPremiumSettings);
     document.getElementById("premium-adult-confirm").addEventListener("change", renderPremiumSettings);
@@ -24134,7 +24400,7 @@ ${suffix}`;
       billingState.message = "Abgemeldet. Deine lokalen R\xFCckblicke bleiben auf diesem Ger\xE4t.";
     }));
     document.getElementById("premium-delete-account").addEventListener("click", () => {
-      if (!window.confirm("Konto wirklich l\xF6schen? Ein aktives Abo wird beendet. Lokale R\xFCckblicke und Bilder auf diesem Ger\xE4t bleiben erhalten.")) return;
+      if (!window.confirm("Konto wirklich l\xF6schen? Ein aktives Abo wird beendet und synchronisierte Cloud-Daten werden gel\xF6scht. Lokale R\xFCckblicke und Bilder auf diesem Ger\xE4t bleiben erhalten.")) return;
       runPremiumAction(async () => {
         await invokeBillingFunction(billingClient, "delete-account");
         const { error } = await billingClient.auth.signOut({ scope: "local" });
@@ -24427,14 +24693,23 @@ ${suffix}`;
     }
     window.addEventListener("focus", () => {
       refreshSystemTheme();
-      if (billingClient) refreshPremiumStatus();
+      if (billingClient) {
+        refreshPremiumStatus();
+        queueAccountSync();
+      }
     });
     document.addEventListener("visibilitychange", () => {
       if (!document.hidden) {
         refreshSystemTheme();
         refreshNativeReminders();
-        if (billingClient) refreshPremiumStatus();
+        if (billingClient) {
+          refreshPremiumStatus();
+          queueAccountSync();
+        }
       }
+    });
+    window.addEventListener("online", () => {
+      if (billingClient) queueAccountSync();
     });
     if (profile?.complete) {
       renderOverview();

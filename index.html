@@ -24,8 +24,8 @@
       <span><strong>DayInStatistics</strong><small>Dein persönlicher Rückblick</small></span>
     </a>
     <div class="header-actions">
-      <button class="header-premium-cta" id="header-premium-cta" type="button" aria-label="Premium ansehen und erwerben"><span aria-hidden="true">👑</span><strong>Premium erwerben</strong></button>
-      <div class="header-premium-badge" id="header-premium-badge" role="status" aria-label="Premium ist aktiv" hidden><span aria-hidden="true">👑</span><strong>PREMIUM</strong></div>
+      <button class="header-premium-cta" id="header-premium-cta" type="button" aria-label="Premium ansehen und erwerben"><span aria-hidden="true">👑</span><strong><span class="header-premium-label-long">Premium erwerben</span><span class="header-premium-label-short">Premium</span></strong></button>
+      <div class="header-premium-badge" id="header-premium-badge" role="status" aria-label="Premium ist aktiv" hidden><span aria-hidden="true">👑</span><strong><span class="header-premium-label-long">PREMIUM</span><span class="header-premium-label-short">PRO</span></strong></div>
       <button class="header-streak" id="header-streak" type="button" data-today-refreshed="false" aria-label="Flammen-Streak öffnen"><span aria-hidden="true">🔥</span><strong id="header-streak-count">0</strong></button>
       <button class="icon-button" id="header-reminder" type="button" aria-label="Erinnerungseinstellungen öffnen" title="Erinnerungseinstellungen">◷</button>
     </div>
@@ -307,7 +307,7 @@
           <strong>3,50 € / Monat</strong><span>oder</span><strong>35 € / Jahr</strong>
           <small>Automatisch verlängerndes Abo · Verwaltung und Kündigung jederzeit über den Zahlungsanbieter.</small>
         </div>
-        <p class="premium-privacy" id="premium-privacy">🔒 Deine Rückblicke, Notizen und Bilder bleiben auf deinem Gerät. Für Kaufstatus und Einladungen werden nur Konto- und Abo-Daten verarbeitet.</p>
+        <p class="premium-privacy" id="premium-privacy">🔒 Rückblicke und Profil bleiben lokal, bis du die optionale Kontosynchronisierung aktivierst. Bilder und Geräteeinstellungen werden nicht synchronisiert.</p>
         <p id="premium-status" class="settings-message" role="status" aria-live="polite">Premium-Verbindung wird geprüft …</p>
         <div id="premium-auth-view" class="premium-section" hidden>
           <div class="premium-actions">
@@ -317,6 +317,13 @@
         </div>
         <div id="premium-guardian-view" class="premium-section" hidden>
           <p id="premium-account-email" class="premium-account-email"></p>
+          <div class="account-sync-card" id="account-sync-section" hidden>
+            <h3>Deine Daten auf deinen Geräten</h3>
+            <p>Optional: Synchronisiere Antworten, Notizen und dein Profil über dein Konto. Bilder, Erinnerungszeit und Design bleiben lokal. Für Profile unter 14 ist die Synchronisierung ausgeschaltet.</p>
+            <label class="toggle-row" for="account-sync-enabled"><span><strong>Kontosynchronisierung</strong><small>Bei Änderungen, beim Öffnen und nach einer Offline-Phase abgleichen</small></span><input id="account-sync-enabled" type="checkbox"><i aria-hidden="true"></i></label>
+            <p id="account-sync-status" class="settings-message" role="status" aria-live="polite"></p>
+            <button class="button button-secondary" id="account-sync-now" type="button">Jetzt synchronisieren</button>
+          </div>
           <div class="premium-acquire-card" id="premium-acquire-section">
             <h3>Premium erwerben</h3>
             <p>Schalte Langzeitverläufe und Zusatzanalysen frei.</p>
@@ -348,29 +355,6 @@
           </div>
         </div>
       </section>
-      <dialog class="notification-consent premium-auth-dialog" id="premium-auth-dialog" aria-labelledby="premium-auth-title">
-        <button class="streak-close terms-close" id="premium-auth-close" type="button" aria-label="Konto-Fenster schließen">×</button>
-        <div class="notification-consent-icon" aria-hidden="true">🔐</div>
-        <p class="eyebrow">DAYINSTATISTICS-KONTO</p>
-        <h2 id="premium-auth-title">Anmelden</h2>
-        <form id="premium-auth-form" class="premium-form">
-          <label class="field-label" id="premium-email-label" for="premium-email">E-Mail-Adresse</label>
-          <input id="premium-email" class="setup-input" type="email" autocomplete="email" maxlength="254" required>
-          <label class="premium-consent"><input id="premium-adult-confirm" type="checkbox"><span>Ich bin mindestens 18 Jahre alt.</span></label>
-          <div class="premium-actions">
-            <button class="button button-secondary" id="premium-sign-in" type="button">Anmeldecode senden</button>
-            <button class="button button-primary" id="premium-send-link" type="button">Registrierungscode senden</button>
-          </div>
-          <button class="text-button premium-auth-switch" id="premium-switch-auth-mode" type="button"></button>
-          <div class="premium-otp-row" id="premium-otp-row" hidden>
-            <p id="premium-otp-email" class="premium-account-email"></p>
-            <label class="field-label" for="premium-otp">E-Mail-Code</label>
-            <input id="premium-otp" class="setup-input premium-code-input" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="8">
-            <button class="button button-secondary" id="premium-verify-otp" type="button">Code bestätigen</button>
-          </div>
-          <p class="settings-message" id="premium-auth-status" role="status" aria-live="polite"></p>
-        </form>
-      </dialog>
       <section class="card settings-card">
         <div class="settings-title"><span class="settings-icon">🧑‍🚀</span><div><h2>Dein persönliches Profil</h2><p id="profile-summary">Passe Interessen und Schwerpunkte an.</p></div></div>
         <button class="button button-secondary" id="edit-profile" type="button">Profil bearbeiten</button>
@@ -400,7 +384,7 @@
         <p class="settings-caveat">Auf Android werden lokale Benachrichtigungen auch bei geschlossener App geplant. Die pünktliche Zustellung hängt von deiner Android-Benachrichtigungs- und Akkuoptimierung ab. In einem normalen Browser erscheinen Erinnerungen nur, solange die App geöffnet ist. Du kannst sie jederzeit ausschalten.</p>
       </section>
       <section class="card settings-card">
-        <div class="settings-title"><span class="settings-icon">↕</span><div><h2>Deine Daten</h2><p>Antworten und Bilder bleiben lokal auf diesem Gerät.</p></div></div>
+        <div class="settings-title"><span class="settings-icon">↕</span><div><h2>Deine Daten</h2><p>Deine Daten bleiben lokal, sofern du die Kontosynchronisierung nicht aktivierst.</p></div></div>
         <div class="data-actions"><button class="button button-secondary" id="export-data" type="button">Daten exportieren</button><label class="button button-secondary file-button" for="import-file">Daten importieren</label><input id="import-file" type="file" accept="application/json,.json" hidden></div>
         <p class="settings-caveat">Ein Export enthält deine Antworten, Notizen, optionales Profil und gespeicherte Bilder. Bewahre die Datei an einem sicheren Ort auf. Beim Import werden gleichdatierte Einträge durch die importierten ersetzt.</p>
       </section>
@@ -452,7 +436,7 @@
     <div class="notification-consent-icon" aria-hidden="true">🔔</div>
     <p class="eyebrow">DEIN TÄGLICHER RÜCKBLICK</p>
     <h2 id="notification-consent-title">Darf DayInStatistics dich erinnern?</h2>
-    <p id="notification-consent-copy">Wenn du zustimmst, kann DayInStatistics dir lokale Erinnerungen schicken: morgens und abends sowie stündlich ab deiner gewählten Startzeit. Deine Antworten bleiben auf diesem Gerät.</p>
+    <p id="notification-consent-copy">Wenn du zustimmst, kann DayInStatistics dir lokale Erinnerungen schicken: morgens und abends sowie stündlich ab deiner gewählten Startzeit. Erinnerungszeit und Benachrichtigungen bleiben auf diesem Gerät; Rückblicke werden nur bei ausdrücklich aktivierter Kontosynchronisierung übertragen.</p>
     <form method="dialog" class="notification-consent-actions">
       <button class="button button-secondary" value="deny">Nicht jetzt</button>
       <button class="button button-primary" value="allow">Erinnerungen erlauben</button>
@@ -476,7 +460,7 @@
         <article class="premium-benefit"><span aria-hidden="true">📈</span><div><h2>Dein ganzer Verlauf</h2><p>Jahres-, Gesamt- und ältere Monatsverläufe statt nur der letzten drei Monate.</p></div></article>
         <article class="premium-benefit"><span aria-hidden="true">🔎</span><div><h2>Zusammenhänge erkunden</h2><p>Beschreibende Analysen zeigen, welche erfassten Faktoren gemeinsam mit deinem Wohlbefinden schwanken können. Das sind keine Diagnosen und kein Nachweis von Ursachen.</p></div></article>
         <article class="premium-benefit"><span aria-hidden="true">📷</span><div><h2>Mehr Raum für Momente</h2><p>Unbegrenzt viele Bilder pro Tag festhalten. Deine Bilder bleiben auf deinem Gerät.</p></div></article>
-        <article class="premium-benefit"><span aria-hidden="true">🔒</span><div><h2>Deine Einträge bleiben privat</h2><p>Für Konto und Abo werden keine Antworten, Notizen oder Bilder übertragen.</p></div></article>
+        <article class="premium-benefit"><span aria-hidden="true">🔒</span><div><h2>Du entscheidest über die Synchronisierung</h2><p>Antworten, Notizen und Profil werden nur nach deiner ausdrücklichen Freigabe synchronisiert. Bilder bleiben immer lokal; Kinderprofile werden nicht abgeglichen.</p></div></article>
       </section>
       <section class="premium-store-plans" aria-labelledby="premium-plans-title">
         <p class="eyebrow">FLEXIBEL WÄHLEN</p>
@@ -496,6 +480,40 @@
       <p id="premium-store-account-note">Vor dem Kauf wird eine E-Mail-Adresse mit deinem Konto verknüpft.</p>
     </footer>
   </dialog>
+  <dialog class="notification-consent" id="account-sync-consent-dialog" aria-labelledby="account-sync-consent-title">
+    <div class="notification-consent-icon" aria-hidden="true">☁️</div>
+    <p class="eyebrow">OPTIONALE FUNKTION</p>
+    <h2 id="account-sync-consent-title">Daten auf deinen Geräten abgleichen?</h2>
+    <p>Mit deiner Zustimmung werden deine Tagesrückblicke inklusive Antworten und Notizen sowie dein Profil mit deinem angemeldeten Konto bei Supabase synchronisiert. Bei Einträgen desselben Datums gewinnt die zuletzt bearbeitete Version. Bilder, Erinnerungszeit und Design bleiben nur auf diesem Gerät. Für Profile unter 14 findet keine Synchronisierung statt.</p>
+    <p>Du kannst die Funktion jederzeit auf diesem Gerät in den Kontoeinstellungen ausschalten. Bereits übertragene Daten bleiben im Konto gespeichert, bis das Konto gelöscht wird.</p>
+    <div class="notification-consent-actions">
+      <button class="button button-secondary" id="account-sync-later" type="button">Nicht jetzt</button>
+      <button class="button button-primary" id="account-sync-enable" type="button">Synchronisierung aktivieren</button>
+    </div>
+  </dialog>
+  <dialog class="notification-consent premium-auth-dialog" id="premium-auth-dialog" aria-labelledby="premium-auth-title">
+    <button class="streak-close terms-close" id="premium-auth-close" type="button" aria-label="Konto-Fenster schließen">×</button>
+    <div class="notification-consent-icon" aria-hidden="true">🔐</div>
+    <p class="eyebrow">DAYINSTATISTICS-KONTO</p>
+    <h2 id="premium-auth-title">Anmelden</h2>
+    <form id="premium-auth-form" class="premium-form">
+      <label class="field-label" id="premium-email-label" for="premium-email">E-Mail-Adresse</label>
+      <input id="premium-email" class="setup-input" type="email" autocomplete="email" maxlength="254" required>
+      <label class="premium-consent"><input id="premium-adult-confirm" type="checkbox"><span>Ich bin mindestens 18 Jahre alt.</span></label>
+      <div class="premium-actions">
+        <button class="button button-secondary" id="premium-sign-in" type="button">Anmeldecode senden</button>
+        <button class="button button-primary" id="premium-send-link" type="button">Registrierungscode senden</button>
+      </div>
+      <button class="text-button premium-auth-switch" id="premium-switch-auth-mode" type="button"></button>
+      <div class="premium-otp-row" id="premium-otp-row" hidden>
+        <p id="premium-otp-email" class="premium-account-email"></p>
+        <label class="field-label" for="premium-otp">E-Mail-Code</label>
+        <input id="premium-otp" class="setup-input premium-code-input" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="8">
+        <button class="button button-secondary" id="premium-verify-otp" type="button">Code bestätigen</button>
+      </div>
+      <p class="settings-message" id="premium-auth-status" role="status" aria-live="polite"></p>
+    </form>
+  </dialog>
   <dialog class="notification-consent terms-dialog" id="terms-dialog" aria-labelledby="terms-title">
     <button class="streak-close terms-close" type="button" aria-label="Nutzungsbedingungen schließen">×</button>
     <div class="notification-consent-icon" aria-hidden="true">📄</div>
@@ -505,11 +523,11 @@
       <h3>Wofür die App gedacht ist</h3>
       <p>DayInStatistics ist ein persönliches Werkzeug zur Selbstreflexion. Es bietet keine medizinische oder psychologische Beratung, stellt keine Diagnosen und ist nicht für Notfälle gedacht. Auswertungen und mögliche Zusammenhänge sind beschreibend und erlauben keine Aussagen über Ursachen.</p>
       <h3>Deine Angaben und dein Gerät</h3>
-      <p>Deine Antworten, dein Profil und deine Bilder werden lokal auf deinem Gerät gespeichert. Du bist dafür verantwortlich, wichtige Daten regelmäßig zu exportieren. Beim Löschen von App- oder Browserdaten können gespeicherte Inhalte verloren gehen. Ein Export kann persönliche Angaben enthalten; bewahre ihn sicher auf.</p>
+      <p>Deine Antworten, Notizen und dein Profil werden zunächst lokal gespeichert. Wenn du angemeldet bist, kannst du die Kontosynchronisierung in den Kontoeinstellungen ausdrücklich aktivieren. Dann werden Rückblicke einschließlich Antworten und Notizen sowie dein Profil über dein Supabase-Konto zwischen deinen Geräten abgeglichen. Bilder, Erinnerungszeit und Design bleiben lokal; Profile unter 14 werden nicht synchronisiert. Gleichdatierte Einträge werden nach dem letzten Bearbeitungszeitpunkt abgeglichen. Das Ausschalten stoppt künftige Übertragungen, löscht aber keine bereits synchronisierten Daten; diese werden beim Löschen des Kontos entfernt. Beim Löschen von App- oder Browserdaten können lokale Inhalte verloren gehen. Ein Export kann persönliche Angaben enthalten; bewahre ihn sicher auf.</p>
       <h3>Premium, Zahlungen und Familienzugang</h3>
       <p>Die optionalen Abos kosten 3,50 € pro Monat oder 35 € pro Jahr und verlängern sich automatisch. Preis, Laufzeit und Kündigungsbedingungen werden vor dem Kauf im sicheren Bezahlvorgang angezeigt. Du kannst dein Abo über die Aboverwaltung kündigen; das Löschen der App beendet ein Abo nicht.</p>
-      <p>Für Anmeldung, Premiumstatus und einen Einladungscode werden Kontodaten und technische Gerätekennungen bei unserem Kontodienst verarbeitet. Zahlungsdaten verarbeitet der Zahlungsanbieter. Antworten, Notizen, Profilangaben und Bilder werden nicht an diese Dienste übertragen. Ein Erwachsenenkonto kann ein einzelnes Kinderprofil freischalten; über das Konto- und Zahlungssystem erhält die erziehungsberechtigte Person keinen Zugriff auf Rückblicke des Kindes. Die Inhalte bleiben lokal auf dem jeweiligen Gerät; Personen mit Zugriff auf das Gerät können dessen App-Daten ansehen.</p>
-      <p>Eine Einladung ist zeitlich begrenzt und nur einmal verwendbar. Die Verknüpfung schaltet Premium frei, synchronisiert aber keine Tagebucheinträge zwischen Geräten. Vor dem Verkaufsstart müssen Datenschutzhinweise, Steuerangaben und die jeweils geltenden Verbraucherrechte vollständig eingerichtet sein.</p>
+      <p>Für Anmeldung, Premiumstatus, Synchronisierung und einen Einladungscode werden Kontodaten und technische Gerätekennungen bei unserem Kontodienst verarbeitet. Zahlungsdaten verarbeitet der Zahlungsanbieter. Ein Erwachsenenkonto kann ein einzelnes Kinderprofil freischalten; über das Konto- und Zahlungssystem erhält die erziehungsberechtigte Person keinen Zugriff auf Rückblicke des Kindes. Personen mit Zugriff auf ein Gerät können dessen lokale App-Daten ansehen.</p>
+      <p>Eine Einladung ist zeitlich begrenzt und nur einmal verwendbar. Die Verknüpfung schaltet Premium frei, synchronisiert aber keine Kinderprofile. Vor dem Verkaufsstart müssen Datenschutzhinweise, Steuerangaben und die jeweils geltenden Verbraucherrechte vollständig eingerichtet sein.</p>
       <h3>Erinnerungen und Verfügbarkeit</h3>
       <p>Erinnerungen sind optional. Ihre Zustellung hängt unter anderem von Geräteberechtigungen, Energiespareinstellungen und der Plattform ab. Die App garantiert weder eine bestimmte Zustellzeit noch eine unterbrechungsfreie Verfügbarkeit.</p>
       <h3>Deine Nutzung</h3>
